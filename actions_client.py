@@ -12,8 +12,6 @@ import time
 import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
-import websocket
-import threading
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,8 +27,6 @@ class ActionsClient:
     def __init__(
         self,
         server_url: str = "http://localhost:3001",
-        websocket_url: str = "ws://localhost:3001/ws",
-        use_websocket: bool = False,
         timeout: float = 5.0,
     ):
         """
@@ -38,19 +34,10 @@ class ActionsClient:
 
         Args:
             server_url: Base URL of the action server
-            websocket_url: WebSocket URL for real-time communication
-            use_websocket: Whether to use WebSocket instead of HTTP
             timeout: Request timeout in seconds
         """
         self.server_url = server_url.rstrip("/")
-        self.websocket_url = websocket_url
-        self.use_websocket = use_websocket
         self.timeout = timeout
-
-        # WebSocket connection
-        self.ws = None
-        self.ws_connected = False
-        self.ws_thread = None
 
         # Statistics
         self.gestures_sent = 0
@@ -58,55 +45,9 @@ class ActionsClient:
         self.failed_sends = 0
 
         logger.info(
-            f"ActionsClient initialized - Server: {server_url}, WebSocket: {use_websocket}"
+            f"ActionsClient initialized - Server: {server_url}"
         )
 
-        # Initialize WebSocket if requested
-        if use_websocket:
-            self._init_websocket()
-
-    def _init_websocket(self):
-        """Initialize WebSocket connection."""
-        try:
-
-            def on_open(ws):
-                logger.info("WebSocket connection opened")
-                self.ws_connected = True
-
-            def on_close(ws, close_status_code, close_msg):
-                logger.info("WebSocket connection closed")
-                self.ws_connected = False
-                # Attempt to reconnect after 3 seconds
-                time.sleep(3)
-                if self.use_websocket:  # Only reconnect if still using WebSocket
-                    self._init_websocket()
-
-            def on_error(ws, error):
-                logger.error(f"WebSocket error: {error}")
-                self.ws_connected = False
-
-            def on_message(ws, message):
-                logger.debug(f"WebSocket message received: {message}")
-
-            self.ws = websocket.WebSocketApp(
-                self.websocket_url,
-                on_open=on_open,
-                on_close=on_close,
-                on_error=on_error,
-                on_message=on_message,
-            )
-
-            # Start WebSocket in a separate thread
-            self.ws_thread = threading.Thread(target=self.ws.run_forever)
-            self.ws_thread.daemon = True
-            self.ws_thread.start()
-
-            # Wait a moment for connection
-            time.sleep(1)
-
-        except Exception as e:
-            logger.error(f"Failed to initialize WebSocket: {e}")
-            self.use_websocket = False
 
     def send_gesture(self, gesture: str, timestamp: Optional[str] = None) -> bool:
         """
@@ -132,11 +73,8 @@ class ActionsClient:
 
         self.gestures_sent += 1
 
-        # Send via WebSocket or HTTP
-        if self.use_websocket and self.ws_connected:
-            return self._send_via_websocket(message)
-        else:
-            return self._send_via_http(message)
+        # Send via HTTP
+        return self._send_via_http(message)
 
     def _send_via_http(self, message: Dict[str, Any]) -> bool:
         """
@@ -186,36 +124,6 @@ class ActionsClient:
             self.failed_sends += 1
             return False
 
-    def _send_via_websocket(self, message: Dict[str, Any]) -> bool:
-        """
-        Send gesture via WebSocket.
-
-        Args:
-            message: Gesture message dictionary
-
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            if not self.ws_connected or not self.ws:
-                logger.warning("WebSocket not connected, falling back to HTTP")
-                return self._send_via_http(message)
-
-            # Add message type for WebSocket
-            ws_message = {"type": "gesture_detected", **message}
-
-            self.ws.send(json.dumps(ws_message))
-            logger.info(
-                f"Gesture '{message['gesture']}' sent successfully via WebSocket"
-            )
-            self.successful_sends += 1
-            return True
-
-        except Exception as e:
-            logger.error(f"WebSocket send error: {e}")
-            logger.info("Falling back to HTTP")
-            self.failed_sends += 1
-            return self._send_via_http(message)
 
     def test_connection(self) -> bool:
         """
@@ -276,27 +184,9 @@ class ActionsClient:
             "success_rate": (self.successful_sends / max(self.gestures_sent, 1)) * 100,
         }
 
-    def switch_to_http(self):
-        """Switch to HTTP communication mode."""
-        if self.use_websocket:
-            self.use_websocket = False
-            if self.ws:
-                self.ws.close()
-            logger.info("Switched to HTTP communication mode")
-
-    def switch_to_websocket(self):
-        """Switch to WebSocket communication mode."""
-        if not self.use_websocket:
-            self.use_websocket = True
-            self._init_websocket()
-            logger.info("Switched to WebSocket communication mode")
 
     def cleanup(self):
         """Clean up resources."""
-        if self.ws:
-            self.ws.close()
-        if self.ws_thread and self.ws_thread.is_alive():
-            self.ws_thread.join(timeout=1)
         logger.info("ActionsClient cleaned up")
 
 
@@ -343,7 +233,7 @@ if __name__ == "__main__":
     print("Testing Actions Client...")
 
     # Initialize client
-    client = ActionsClient(use_websocket=False)  # Start with HTTP for testing
+    client = ActionsClient()
 
     # Test connection
     if not client.test_connection():

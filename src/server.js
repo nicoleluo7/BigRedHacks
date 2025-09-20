@@ -8,7 +8,6 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { WebSocketServer, WebSocket } from "ws";
 import express from "express";
 import cors from "cors";
 import { spawn, exec } from "child_process";
@@ -36,15 +35,12 @@ class GestureRecognitionMCPServer {
     );
 
     this.gestureMappings = new Map();
-    this.connectedClients = new Set();
-    this.wsServer = null;
     this.httpServer = null;
     this.latestFrame = null;
     this.configPath = join(__dirname, "..", "config", "gesture-mappings.json");
 
     this.setupMCPHandlers();
     this.loadGestureMappings();
-    this.setupWebSocketServer();
     this.setupHttpServer();
   }
 
@@ -677,13 +673,8 @@ class GestureRecognitionMCPServer {
       serverTime: new Date().toISOString(),
     };
 
-    // Broadcast to all connected WebSocket clients
-    const message = JSON.stringify(event);
-    this.connectedClients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
+    // Log the gesture event
+    console.log(`Gesture detected: ${gesture} -> ${action}`);
 
     console.log(`Broadcasted gesture event: ${gesture} -> ${action}`);
 
@@ -691,7 +682,7 @@ class GestureRecognitionMCPServer {
       content: [
         {
           type: "text",
-          text: `Broadcasted gesture event to ${this.connectedClients.size} clients`,
+          text: `Gesture event logged: ${gesture} -> ${action}`
         },
       ],
     };
@@ -843,10 +834,6 @@ class GestureRecognitionMCPServer {
     }
   }
 
-  setupWebSocketServer() {
-    // WebSocket server will be created when HTTP server starts
-    console.log("WebSocket server setup ready");
-  }
 
   setupHttpServer() {
     const app = express();
@@ -893,25 +880,8 @@ class GestureRecognitionMCPServer {
         gesture,
       };
 
-      // Broadcast to all connected WebSocket clients
-      if (this.connectedClients.size > 0) {
-        const message = JSON.stringify({
-          type: "camera_frame",
-          image,
-          timestamp,
-          gesture,
-        });
-
-        this.connectedClients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            try {
-              client.send(message);
-            } catch (error) {
-              console.error("Error sending camera frame:", error);
-            }
-          }
-        });
-      }
+      // Log camera frame received
+      console.log(`Camera frame received with gesture: ${gesture || 'none'}`);
 
       res.json({ success: true });
     });
@@ -965,26 +935,6 @@ class GestureRecognitionMCPServer {
     this.httpServer = app.listen(3001, () => {
       console.log("HTTP server running on port 3001");
 
-      // Create WebSocket server
-      this.wsServer = new WebSocketServer({
-        server: this.httpServer,
-        path: "/ws",
-      });
-
-      this.wsServer.on("connection", (ws) => {
-        console.log("New WebSocket client connected");
-        this.connectedClients.add(ws);
-
-        ws.on("close", () => {
-          console.log("WebSocket client disconnected");
-          this.connectedClients.delete(ws);
-        });
-
-        ws.on("error", (error) => {
-          console.error("WebSocket error:", error);
-          this.connectedClients.delete(ws);
-        });
-      });
     });
   }
 
@@ -1002,9 +952,6 @@ server.run().catch(console.error);
 // Graceful shutdown
 process.on("SIGINT", async () => {
   console.log("Shutting down server...");
-  if (server.wsServer) {
-    server.wsServer.close();
-  }
   if (server.httpServer) {
     server.httpServer.close();
   }

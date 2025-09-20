@@ -7,7 +7,6 @@ A complete gesture recognition system with real-time camera streaming, web front
 - **Real-time Gesture Recognition**: Detects 17+ gestures including wave, fist, thumbs up, peace sign, and more
 - **Live Camera Streaming**: Web-based camera feed with gesture overlays
 - **System Action Execution**: Executes actions like opening tabs, apps, adjusting volume, Spotify control
-- **WebSocket Communication**: Real-time event broadcasting to connected clients
 - **RESTful API**: HTTP endpoints for frontend integration
 - **Configurable Mappings**: Dynamic gesture-to-action mapping updates
 - **Service Restart**: Frontend-controlled Python service restart functionality
@@ -18,7 +17,7 @@ A complete gesture recognition system with real-time camera streaming, web front
 The system consists of three main components:
 
 ```
-Python Backend (Gesture Recognition) → Node.js Server (API/WebSocket) → React Frontend (UI)
+Python Backend (Gesture Recognition) → Node.js Server (API) → React Frontend (UI)
                     ↓                           ↓
             Camera Streaming              System Actions
 ```
@@ -98,15 +97,7 @@ The Node.js server runs on port 3001 and provides these endpoints:
 - `POST /api/camera-frame` - Receive camera frames from Python backend
 - `GET /api/camera-frame` - Get latest camera frame
 - `POST /api/restart-python` - Restart Python service
-- `WS /ws` - WebSocket connection for real-time events
 
-## WebSocket Events
-
-The WebSocket connection provides real-time events:
-
-- `gesture_detected` - When a gesture is recognized
-- `camera_frame` - Live camera feed updates
-- `connected`/`disconnected` - Connection status changes
 
 ## Default Gesture Mappings
 
@@ -138,14 +129,12 @@ Gesture mappings are stored in `config/gesture-mappings.json` and automatically 
 ### With Frontend (Person A)
 The frontend can connect via:
 - HTTP API for gesture mapping management
-- WebSocket for real-time gesture events
 - MCP client library for direct integration
 
 ### With Gesture Engine (Person B)
 The gesture recognition engine can send events via:
 - Direct MCP tool calls
 - HTTP POST to `/api/detect-gesture`
-- WebSocket messages
 
 ## Troubleshooting
 
@@ -153,7 +142,6 @@ The gesture recognition engine can send events via:
 
 **Frontend shows "Disconnected":**
 - Ensure Node.js server is running on port 3001
-- Check WebSocket connection in browser dev tools
 - Verify Python backend is running with `--web-stream` flag
 
 **Camera shows "Not Connected":**

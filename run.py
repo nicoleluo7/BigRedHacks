@@ -41,7 +41,6 @@ class GestureRecognitionApp:
     def __init__(
         self,
         camera_index: int = 1,
-        use_websocket: bool = False,
         show_display: bool = True,
         debug: bool = False,
         web_stream: bool = False,
@@ -51,7 +50,6 @@ class GestureRecognitionApp:
 
         Args:
             camera_index: Camera device index
-            use_websocket: Use WebSocket instead of HTTP for communication
             show_display: Show camera feed window
             debug: Enable debug logging
         """
@@ -59,7 +57,6 @@ class GestureRecognitionApp:
             logging.getLogger().setLevel(logging.DEBUG)
 
         self.camera_index = camera_index
-        self.use_websocket = use_websocket
         self.show_display = show_display
         self.web_stream = web_stream
         self.running = False
@@ -67,7 +64,7 @@ class GestureRecognitionApp:
         # Initialize components
         self.camera = CameraManager(camera_index=camera_index)
         self.recognizer = GestureRecognizer()
-        self.actions_client = ActionsClient(use_websocket=use_websocket)
+        self.actions_client = ActionsClient()
         
         # Initialize camera streamer for web frontend (only if web streaming is enabled)
         self.camera_streamer = None
@@ -84,7 +81,7 @@ class GestureRecognitionApp:
 
         logger.info(f"GestureRecognitionApp initialized")
         logger.info(f"  Camera: {camera_index}")
-        logger.info(f"  Communication: {'WebSocket' if use_websocket else 'HTTP'}")
+        logger.info(f"  Communication: HTTP")
         logger.info(f"  Display: {'Enabled' if show_display else 'Disabled'}")
 
     def setup_signal_handlers(self):
@@ -232,7 +229,7 @@ class GestureRecognitionApp:
             f"FPS: {fps:.1f}",
             f"Frames: {self.frames_processed}",
             f"Gestures: {self.gestures_detected}",
-            f"Mode: {'WebSocket' if self.use_websocket else 'HTTP'}",
+            "Mode: HTTP",
             "Press 'q' or middle finger gesture to quit",
         ]
 
@@ -348,11 +345,6 @@ def main():
     parser.add_argument(
         "--camera-index", type=int, default=1, help="Camera device index (default: 1)"
     )
-    parser.add_argument(
-        "--use-websocket",
-        action="store_true",
-        help="Use WebSocket instead of HTTP for communication",
-    )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument(
         "--no-display",
@@ -370,7 +362,6 @@ def main():
     # Create and configure application
     app = GestureRecognitionApp(
         camera_index=args.camera_index,
-        use_websocket=args.use_websocket,
         show_display=not args.no_display,
         debug=args.debug,
         web_stream=args.web_stream,
