@@ -7,7 +7,6 @@ import {
   useLocation,
 } from "react-router-dom";
 import {
-  Camera,
   Settings,
   BarChart3,
   Activity,
@@ -21,8 +20,6 @@ import {
 import Dashboard from "./components/Dashboard";
 import GestureConfig from "./components/GestureConfig";
 import Statistics from "./components/Statistics";
-import CameraView from "./components/CameraView";
-import WebSocketService from "./services/WebSocketService";
 
 function Navigation() {
   const location = useLocation();
@@ -30,7 +27,6 @@ function Navigation() {
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: Activity },
-    { name: "Camera", href: "/camera", icon: Camera },
     { name: "Configure", href: "/configure", icon: Settings },
     { name: "Statistics", href: "/statistics", icon: BarChart3 },
   ];
@@ -125,7 +121,7 @@ function ConnectionStatus() {
 
   useEffect(() => {
     const checkConnection = () => {
-      fetch("/api/gestures")
+      fetch("/api/health")
         .then(() => setIsConnected(true))
         .catch(() => setIsConnected(false));
     };
@@ -159,21 +155,12 @@ function App() {
   const [recentGestures, setRecentGestures] = useState([]);
 
   useEffect(() => {
-    // Initialize WebSocket connection
-    WebSocketService.connect();
-
-    // Load initial gesture mappings
     fetch("/api/gestures")
-      .then((response) => response.json())
-      .then((data) => setGestureMappings(data))
-      .catch((error) =>
-        console.error("Failed to load gesture mappings:", error)
-      );
-
-    // Cleanup on unmount
-    return () => {
-      WebSocketService.disconnect();
-    };
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Loaded gesture mappings:", data);
+        setGestureMappings(data);
+      });
   }, []);
 
   const handleGestureDetected = (gestureData) => {
@@ -200,7 +187,6 @@ function App() {
                 />
               }
             />
-            <Route path="/camera" element={<CameraView />} />
             <Route
               path="/configure"
               element={
