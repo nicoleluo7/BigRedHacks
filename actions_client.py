@@ -302,15 +302,27 @@ class ActionsClient:
 
 # Gesture mapping for common gestures to action server format
 GESTURE_MAPPINGS = {
-    "fist": "fist",
-    "open_palm": "open_palm",
-    "thumbs_up": "thumbs_up",
-    "peace": "peace",
-    "call_sign": "call_sign",
-    "pointing": "pointing",
-    "rock_sign": "rock_sign",
-    "ok_sign": "ok_sign",
+   "fist": "fist",
+   "open_palm": "open_palm",
+   "thumbs_up": "thumbs_up",
+   "thumbs_down": "thumbs_down",
+   "peace": "peace",
+   "call_sign": "call_sign",
+   "pointing": "pointing",
+   "pointing_up": "pointing_up",
+   "pointing_right": "pointing_right",
+   "rock_sign": "rock_sign",
+   "ok_sign": "ok_sign",
+   "three_fingers": "three_fingers",
+   "three_fingers_v2": "three_fingers_v2",
+   "middle_finger": "middle_finger",
+   "ring_finger": "ring_finger",
+   "pinky": "pinky",
+   "two_fingers_ir": "two_fingers_ir",
+   "two_fingers_mr": "two_fingers_mr",
+   "four_fingers": "four_fingers",
 }
+
 
 
 def map_gesture_name(detected_gesture: str) -> str:
