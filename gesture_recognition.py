@@ -210,7 +210,7 @@ class GestureRecognizer:
             and not fingers_up[2]
             and not fingers_up[3]
         ):
-            return "call_sign"
+            return "call"
 
         # POINTING: Index finger extended, others down (relaxed)
         elif (
@@ -227,7 +227,7 @@ class GestureRecognizer:
             fingers_up[1] and fingers_up[4] and not fingers_up[2] and not fingers_up[3]
         ):
             # Allow thumb to be up or down for rock sign
-            return "rock_sign"
+            return "rock"
 
         # THREE FINGER SIGN: Index, middle, and ring fingers up
         elif fingers_up[1] and fingers_up[2] and fingers_up[3] and not fingers_up[4]:
@@ -291,7 +291,7 @@ class GestureRecognizer:
             # Check if thumb and index are close (OK sign approximation)
             thumb_index_distance = np.linalg.norm(thumb_tip - index_tip)
             if thumb_index_distance < 0.05:  # Threshold for "close"
-                return "ok_sign"
+                return "ok"
 
         # Default: No recognized gesture
         return None
@@ -452,10 +452,10 @@ class GestureRecognizer:
             "open_palm",
             "thumbs_up",
             "peace",
-            "call_sign",
+            "call",
             "pointing",
-            "rock_sign",
-            "ok_sign",
+            "rock",
+            "ok",
             "three_fingers",
             "three_fingers_v2",
             "middle_finger",
