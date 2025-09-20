@@ -1,32 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { 
-  Camera, 
-  Settings, 
-  BarChart3, 
-  Activity, 
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+} from "react-router-dom";
+import {
+  Camera,
+  Settings,
+  BarChart3,
+  Activity,
   Menu,
   X,
   Wifi,
-  WifiOff
-} from 'lucide-react';
+  WifiOff,
+} from "lucide-react";
 
 // Components
-import Dashboard from './components/Dashboard';
-import GestureConfig from './components/GestureConfig';
-import Statistics from './components/Statistics';
-import CameraView from './components/CameraView';
-import WebSocketService from './services/WebSocketService';
+import Dashboard from "./components/Dashboard";
+import GestureConfig from "./components/GestureConfig";
+import Statistics from "./components/Statistics";
+import CameraView from "./components/CameraView";
+import WebSocketService from "./services/WebSocketService";
 
 function Navigation() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Activity },
-    { name: 'Camera', href: '/camera', icon: Camera },
-    { name: 'Configure', href: '/configure', icon: Settings },
-    { name: 'Statistics', href: '/statistics', icon: BarChart3 },
+    { name: "Dashboard", href: "/", icon: Activity },
+    { name: "Camera", href: "/camera", icon: Camera },
+    { name: "Configure", href: "/configure", icon: Settings },
+    { name: "Statistics", href: "/statistics", icon: BarChart3 },
   ];
 
   return (
@@ -35,7 +41,9 @@ function Navigation() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">🤚 Gesture Control</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                🤚 Gesture Control
+              </h1>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navigation.map((item) => {
@@ -47,8 +55,8 @@ function Navigation() {
                     to={item.href}
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                       isActive
-                        ? 'border-primary-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                        ? "border-primary-500 text-gray-900"
+                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -58,7 +66,7 @@ function Navigation() {
               })}
             </div>
           </div>
-          
+
           {/* Connection Status */}
           <div className="flex items-center">
             <ConnectionStatus />
@@ -93,8 +101,8 @@ function Navigation() {
                   to={item.href}
                   className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
                     isActive
-                      ? 'bg-primary-50 border-primary-500 text-primary-700'
-                      : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+                      ? "bg-primary-50 border-primary-500 text-primary-700"
+                      : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -117,7 +125,7 @@ function ConnectionStatus() {
 
   useEffect(() => {
     const checkConnection = () => {
-      fetch('/api/gestures')
+      fetch("/api/gestures")
         .then(() => setIsConnected(true))
         .catch(() => setIsConnected(false));
     };
@@ -135,10 +143,12 @@ function ConnectionStatus() {
       ) : (
         <WifiOff className="w-5 h-5 text-danger-500" />
       )}
-      <span className={`text-sm font-medium ${
-        isConnected ? 'text-success-700' : 'text-danger-700'
-      }`}>
-        {isConnected ? 'Connected' : 'Disconnected'}
+      <span
+        className={`text-sm font-medium ${
+          isConnected ? "text-success-700" : "text-danger-700"
+        }`}
+      >
+        {isConnected ? "Connected" : "Disconnected"}
       </span>
     </div>
   );
@@ -151,12 +161,14 @@ function App() {
   useEffect(() => {
     // Initialize WebSocket connection
     WebSocketService.connect();
-    
+
     // Load initial gesture mappings
-    fetch('/api/gestures')
-      .then(response => response.json())
-      .then(data => setGestureMappings(data))
-      .catch(error => console.error('Failed to load gesture mappings:', error));
+    fetch("/api/gestures")
+      .then((response) => response.json())
+      .then((data) => setGestureMappings(data))
+      .catch((error) =>
+        console.error("Failed to load gesture mappings:", error)
+      );
 
     // Cleanup on unmount
     return () => {
@@ -165,7 +177,7 @@ function App() {
   }, []);
 
   const handleGestureDetected = (gestureData) => {
-    setRecentGestures(prev => [gestureData, ...prev.slice(0, 9)]); // Keep last 10
+    setRecentGestures((prev) => [gestureData, ...prev.slice(0, 9)]); // Keep last 10
   };
 
   const handleMappingUpdate = (updatedMappings) => {
@@ -178,32 +190,29 @@ function App() {
         <Navigation />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <Routes>
-            <Route 
-              path="/" 
+            <Route
+              path="/"
               element={
-                <Dashboard 
+                <Dashboard
                   gestureMappings={gestureMappings}
                   recentGestures={recentGestures}
                   onGestureDetected={handleGestureDetected}
                 />
-              } 
+              }
             />
-            <Route 
-              path="/camera" 
-              element={<CameraView />} 
-            />
-            <Route 
-              path="/configure" 
+            <Route path="/camera" element={<CameraView />} />
+            <Route
+              path="/configure"
               element={
-                <GestureConfig 
+                <GestureConfig
                   gestureMappings={gestureMappings}
                   onMappingUpdate={handleMappingUpdate}
                 />
-              } 
+              }
             />
-            <Route 
-              path="/statistics" 
-              element={<Statistics recentGestures={recentGestures} />} 
+            <Route
+              path="/statistics"
+              element={<Statistics recentGestures={recentGestures} />}
             />
           </Routes>
         </main>

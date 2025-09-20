@@ -6,6 +6,11 @@
     },
     "updatedAt": "2025-09-20T15:05:51.065Z"
   },
+  "pinch": {
+    "action": "screenshot",
+    "params": {},
+    "updatedAt": "2025-09-20T15:05:51.066Z"
+  },
   "fist": {
     "action": "notification",
     "params": {
@@ -13,7 +18,7 @@
     },
     "updatedAt": "2025-09-20T15:05:51.066Z"
   },
-  "call": {
+  "call_sign": {
     "action": "open_app",
     "params": {
       "appName": "FaceTime"
@@ -22,8 +27,7 @@
   },
   "ok": {
     "action": "spotify_play_pause",
-    "params": {},
-    "updatedAt": "2025-09-20T15:30:00.000Z"
+    "params": {}
   },
   "rock": {
     "action": "open_app",

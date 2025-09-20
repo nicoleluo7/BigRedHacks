@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Activity, 
-  Wifi, 
-  WifiOff, 
-  Clock, 
-  Zap, 
+import React, { useState, useEffect } from "react";
+import {
+  Activity,
+  Wifi,
+  WifiOff,
+  Clock,
+  Zap,
   Eye,
   AlertCircle,
   CheckCircle,
   XCircle,
   RefreshCw,
-  Loader2
-} from 'lucide-react';
-import WebSocketService from '../services/WebSocketService';
-import ApiService from '../services/ApiService';
+  Loader2,
+} from "lucide-react";
+import WebSocketService from "../services/WebSocketService";
+import ApiService from "../services/ApiService";
 
 function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
   const [isConnected, setIsConnected] = useState(false);
@@ -21,6 +21,7 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
   const [lastGesture, setLastGesture] = useState(null);
   const [gestureCount, setGestureCount] = useState(0);
   const [isRestarting, setIsRestarting] = useState(false);
+  const [pythonRunning, setPythonRunning] = useState(false);
 
   useEffect(() => {
     // Check initial connection
@@ -29,16 +30,16 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
     // Set up WebSocket listener
     const removeListener = WebSocketService.addEventListener((event, data) => {
       switch (event) {
-        case 'connected':
+        case "connected":
           setIsConnected(true);
           break;
-        case 'disconnected':
+        case "disconnected":
           setIsConnected(false);
           break;
-        case 'message':
-          if (data.type === 'gesture_detected') {
+        case "message":
+          if (data.type === "gesture_detected") {
             setLastGesture(data);
-            setGestureCount(prev => prev + 1);
+            setGestureCount((prev) => prev + 1);
             onGestureDetected(data);
           }
           break;
@@ -51,60 +52,58 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
     return removeListener;
   }, [onGestureDetected]);
 
-  const handleRestartPython = async () => {
-    setIsRestarting(true);
-    try {
-      const result = await ApiService.restartPythonService();
-      console.log('Python service restarted:', result);
-      
-      // Wait a moment for the service to start
-      setTimeout(() => {
-        setIsConnected(true);
-        setIsRestarting(false);
-      }, 3000);
-    } catch (error) {
-      console.error('Failed to restart Python service:', error);
-      setIsRestarting(false);
-    }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch("/api/python-status")
+        .then((res) => res.json())
+        .then((data) => setPythonRunning(data.status === "running"));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const togglePython = () => {
+    fetch("/api/restart-python", { method: "POST" })
+      .then((res) => res.json())
+      .then((data) => setPythonRunning(data.status === "started"));
   };
 
   const getGestureIcon = (gesture) => {
     const iconMap = {
-      'wave': '👋',
-      'fist': '✊',
-      'open_palm': '✋',
-      'thumbs_up': '👍',
-      'peace': '✌️',
-      'pointing': '👆',
-      'rock_sign': '🤘',
-      'ok_sign': '👌',
-      'call_sign': '🤙',
-      'middle_finger': '🖕',
-      'ring_finger': '💍',
-      'pinky': '🖐️',
-      'three_fingers': '🤟',
-      'four_fingers': '🖖',
+      wave: "👋",
+      fist: "✊",
+      open_palm: "✋",
+      thumbs_up: "👍",
+      peace: "✌️",
+      pointing: "👆",
+      rock_sign: "🤘",
+      ok_sign: "👌",
+      call_sign: "🤙",
+      middle_finger: "🖕",
+      ring_finger: "💍",
+      pinky: "🖐️",
+      three_fingers: "🤟",
+      four_fingers: "🖖",
     };
-    return iconMap[gesture] || '🤚';
+    return iconMap[gesture] || "🤚";
   };
 
   const getActionDescription = (action, params) => {
     switch (action) {
-      case 'open_tab':
-        return `Open ${params.url || 'Google'}`;
-      case 'open_app':
+      case "open_tab":
+        return `Open ${params.url || "Google"}`;
+      case "open_app":
         return `Open ${params.appName}`;
-      case 'volume_up':
-        return 'Volume Up';
-      case 'volume_down':
-        return 'Volume Down';
-      case 'spotify_play_pause':
-        return 'Spotify Play/Pause';
-      case 'spotify_next':
-        return 'Spotify Next Track';
-      case 'notification':
-        return `Notification: ${params.message || 'Gesture detected!'}`;
-      case 'custom_command':
+      case "volume_up":
+        return "Volume Up";
+      case "volume_down":
+        return "Volume Down";
+      case "spotify_play_pause":
+        return "Spotify Play/Pause";
+      case "spotify_next":
+        return "Spotify Next Track";
+      case "notification":
+        return `Notification: ${params.message || "Gesture detected!"}`;
+      case "custom_command":
         return `Command: ${params.command}`;
       default:
         return action;
@@ -120,16 +119,28 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gesture Recognition Dashboard</h1>
-            <p className="text-gray-600 mt-1">Monitor and control your gesture recognition system</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Gesture Recognition Dashboard
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Monitor and control your gesture recognition system
+            </p>
           </div>
           <div className="flex items-center space-x-4">
-            <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
-              isConnected ? 'bg-success-100 text-success-700' : 'bg-danger-100 text-danger-700'
-            }`}>
-              {isConnected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+            <div
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
+                isConnected
+                  ? "bg-success-100 text-success-700"
+                  : "bg-danger-100 text-danger-700"
+              }`}
+            >
+              {isConnected ? (
+                <Wifi className="w-4 h-4" />
+              ) : (
+                <WifiOff className="w-4 h-4" />
+              )}
               <span className="text-sm font-medium">
-                {isConnected ? 'Connected' : 'Disconnected'}
+                {isConnected ? "Connected" : "Disconnected"}
               </span>
             </div>
           </div>
@@ -146,7 +157,7 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">System Status</p>
               <p className="text-lg font-semibold text-gray-900">
-                {isConnected ? 'Active' : 'Offline'}
+                {isConnected ? "Active" : "Offline"}
               </p>
             </div>
           </div>
@@ -158,8 +169,12 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
               <Zap className="w-8 h-8 text-warning-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Gestures Detected</p>
-              <p className="text-lg font-semibold text-gray-900">{gestureCount}</p>
+              <p className="text-sm font-medium text-gray-500">
+                Gestures Detected
+              </p>
+              <p className="text-lg font-semibold text-gray-900">
+                {gestureCount}
+              </p>
             </div>
           </div>
         </div>
@@ -170,7 +185,9 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
               <Eye className="w-8 h-8 text-success-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Mapped Gestures</p>
+              <p className="text-sm font-medium text-gray-500">
+                Mapped Gestures
+              </p>
               <p className="text-lg font-semibold text-gray-900">
                 {mappedGestures}/{totalGestures}
               </p>
@@ -186,7 +203,7 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Last Gesture</p>
               <p className="text-sm font-semibold text-gray-900">
-                {lastGesture ? getGestureIcon(lastGesture.gesture) : 'None'}
+                {lastGesture ? getGestureIcon(lastGesture.gesture) : "None"}
               </p>
             </div>
           </div>
@@ -198,13 +215,17 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
         {/* Last Gesture */}
         {lastGesture && (
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Last Gesture Detected</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Last Gesture Detected
+            </h3>
             <div className="flex items-center space-x-4">
-              <div className="text-4xl">{getGestureIcon(lastGesture.gesture)}</div>
+              <div className="text-4xl">
+                {getGestureIcon(lastGesture.gesture)}
+              </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <h4 className="text-lg font-medium text-gray-900 capitalize">
-                    {lastGesture.gesture.replace('_', ' ')}
+                    {lastGesture.gesture.replace("_", " ")}
                   </h4>
                   {lastGesture.success ? (
                     <CheckCircle className="w-5 h-5 text-success-500" />
@@ -213,7 +234,11 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
                   )}
                 </div>
                 <p className="text-sm text-gray-600">
-                  Action: {getActionDescription(lastGesture.action, lastGesture.params || {})}
+                  Action:{" "}
+                  {getActionDescription(
+                    lastGesture.action,
+                    lastGesture.params || {}
+                  )}
                 </p>
                 <p className="text-xs text-gray-500">
                   {new Date(lastGesture.timestamp).toLocaleTimeString()}
@@ -225,15 +250,16 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
 
         {/* Quick Actions */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Quick Actions
+          </h3>
           <div className="space-y-3">
-            <button 
-              onClick={handleRestartPython}
-              disabled={isRestarting}
+            <button
+              onClick={togglePython}
               className={`w-full text-left ${
-                isRestarting 
-                  ? 'btn-secondary opacity-50 cursor-not-allowed' 
-                  : 'btn-primary'
+                isRestarting
+                  ? "btn-secondary opacity-50 cursor-not-allowed"
+                  : "btn-primary"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -243,7 +269,9 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
                   ) : (
                     <RefreshCw className="w-4 h-4" />
                   )}
-                  <span>{isRestarting ? 'Restarting...' : 'Restart Python Service'}</span>
+                  <span>
+                    {pythonRunning ? "Stop Python Script" : "Run Python Script"}
+                  </span>
                 </div>
                 <span>→</span>
               </div>
@@ -272,12 +300,16 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
 
       {/* Gesture Mappings Overview */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Gesture Mappings</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Active Gesture Mappings
+        </h3>
         {Object.keys(gestureMappings).length === 0 ? (
           <div className="text-center py-8">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">No gesture mappings configured</p>
-            <p className="text-sm text-gray-400">Go to Configure to set up gesture actions</p>
+            <p className="text-sm text-gray-400">
+              Go to Configure to set up gesture actions
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -287,10 +319,13 @@ function Dashboard({ gestureMappings, recentGestures, onGestureDetected }) {
                   <div className="text-2xl">{getGestureIcon(gesture)}</div>
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 capitalize">
-                      {gesture.replace('_', ' ')}
+                      {gesture.replace("_", " ")}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      {getActionDescription(mapping.action, mapping.params || {})}
+                      {getActionDescription(
+                        mapping.action,
+                        mapping.params || {}
+                      )}
                     </p>
                   </div>
                 </div>

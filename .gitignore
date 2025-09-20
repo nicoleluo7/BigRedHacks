@@ -62,6 +62,7 @@ ehthumbs.db
 Thumbs.db
 
 # Project specific
+config/gesture-mappings.json
 screenshots/
 logs/
 *.log

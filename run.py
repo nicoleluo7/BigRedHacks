@@ -19,6 +19,7 @@ import logging
 from typing import Optional
 import threading
 from datetime import datetime
+import requests
 
 # Import our modules
 from gesture_recognition import GestureRecognizer, CameraManager
@@ -174,6 +175,10 @@ class GestureRecognitionApp:
             # Check for middle finger gesture to quit
             if detected_gesture == "middle_finger":
                 logger.info("Middle finger gesture detected - closing application")
+                try:
+                    requests.post("http://localhost:3001/api/python-status", json={"status": "stopped"})
+                except Exception as e:
+                    logger.warning(f"Could not notify backend to stop Python: {e}")
                 return False
 
             # Map gesture name for action server

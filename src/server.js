@@ -855,7 +855,7 @@ class GestureRecognitionMCPServer {
 
     // Serve static files for the frontend
     app.use("/static", express.static(join(__dirname, "..", "public")));
-    
+
     // Serve the React frontend
     app.use(express.static(join(__dirname, "..", "frontend", "build")));
 
@@ -885,23 +885,23 @@ class GestureRecognitionMCPServer {
     // Camera streaming endpoint
     app.post("/api/camera-frame", (req, res) => {
       const { image, timestamp, gesture } = req.body;
-      
+
       // Store the latest frame data
       this.latestFrame = {
         image,
         timestamp,
-        gesture
+        gesture,
       };
-      
+
       // Broadcast to all connected WebSocket clients
       if (this.connectedClients.size > 0) {
         const message = JSON.stringify({
           type: "camera_frame",
           image,
           timestamp,
-          gesture
+          gesture,
         });
-        
+
         this.connectedClients.forEach((client) => {
           if (client.readyState === WebSocket.OPEN) {
             try {
@@ -912,7 +912,7 @@ class GestureRecognitionMCPServer {
           }
         });
       }
-      
+
       res.json({ success: true });
     });
 
@@ -926,63 +926,40 @@ class GestureRecognitionMCPServer {
     });
 
     // Restart Python service endpoint
-    app.post("/api/restart-python", async (req, res) => {
-      try {
-        console.log("Restarting Python service...");
-        
-        // Kill any existing Python processes
-        exec("pkill -f 'python.*run.py'", (error) => {
-          if (error && !error.message.includes("No matching processes")) {
-            console.error("Error killing Python processes:", error);
-          }
-        });
+    let pythonProcess = null;
+    let pythonStatus = "stopped";
 
-        // Wait a moment for processes to be killed
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Start Python service with web streaming
-        const pythonProcess = spawn("python", ["run.py", "--camera-index", "1", "--web-stream"], {
+    app.post("/api/restart-python", (req, res) => {
+      if (pythonProcess && !pythonProcess.killed) {
+        pythonProcess.kill();
+        pythonProcess = null;
+        pythonStatus = "stopped";
+        return res.json({ status: "stopped" });
+      } else {
+        // Use absolute path to run.py
+        const scriptPath = join(__dirname, "..", "run.py");
+        const pythonCmd = process.platform === "win32" ? "py" : "python3.12";
+        const pythonArgs =
+          process.platform === "win32"
+            ? ["-3.12", scriptPath, "--camera-index", "0"]
+            : [scriptPath, "--camera-index", "0"];
+        pythonProcess = spawn(pythonCmd, pythonArgs, {
           cwd: join(__dirname, ".."),
-          detached: false,
-          stdio: ["ignore", "pipe", "pipe"]
+          detached: true,
+          stdio: "ignore",
         });
-
-        // Store the process reference
-        this.pythonProcess = pythonProcess;
-
-        // Handle process events
-        pythonProcess.stdout.on("data", (data) => {
-          console.log(`Python stdout: ${data}`);
-        });
-
-        pythonProcess.stderr.on("data", (data) => {
-          console.log(`Python stderr: ${data}`);
-        });
-
-        pythonProcess.on("close", (code) => {
-          console.log(`Python process exited with code ${code}`);
-          this.pythonProcess = null;
-        });
-
-        pythonProcess.on("error", (error) => {
-          console.error("Failed to start Python process:", error);
-          res.status(500).json({ error: "Failed to restart Python service" });
-          return;
-        });
-
-        // Give it a moment to start
-        setTimeout(() => {
-          res.json({ 
-            success: true, 
-            message: "Python service restarted successfully",
-            pid: pythonProcess.pid
-          });
-        }, 2000);
-
-      } catch (error) {
-        console.error("Error restarting Python service:", error);
-        res.status(500).json({ error: error.message });
+        pythonStatus = "running";
+        return res.json({ status: "started" });
       }
+    });
+
+    app.post("/api/python-status", (req, res) => {
+      pythonStatus = req.body.status;
+      res.json({ success: true });
+    });
+
+    app.get("/api/python-status", (req, res) => {
+      res.json({ status: pythonStatus });
     });
 
     this.httpServer = app.listen(3001, () => {
