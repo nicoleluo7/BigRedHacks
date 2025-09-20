@@ -26,7 +26,7 @@ class GestureRecognizer:
 
     def __init__(
         self,
-        min_detection_confidence: float = 0.8,
+        min_detection_confidence: float = 0.9,
         min_tracking_confidence: float = 0.5,
         max_num_hands: int = 1,
     ):
@@ -52,7 +52,7 @@ class GestureRecognizer:
         self.wave_threshold = (
             0.05  # Minimum movement for wave detection (more sensitive)
         )
-        self.wave_frames = 5  # Number of frames to analyze for wave (shorter window)
+        self.wave_frames = 7  # Number of frames to analyze for wave (shorter window)
         self.last_wave_time = 0  # Prevent rapid wave detections
 
         # Gesture detection state
@@ -211,6 +211,16 @@ class GestureRecognizer:
             and not fingers_up[3]
         ):
             return "call"
+
+        # L SHAPE: Thumb and index finger extended, others down
+        elif (
+            fingers_up[0]
+            and fingers_up[1]
+            and not fingers_up[2]
+            and not fingers_up[3]
+            and not fingers_up[4]
+        ):
+            return "l_shape"
 
         # POINTING: Index finger extended, others down (relaxed)
         elif (
@@ -454,8 +464,11 @@ class GestureRecognizer:
             "peace",
             "call",
             "pointing",
+            "l_shape",
             "rock",
+            "rock_sign",
             "ok",
+            "ok_sign",
             "three_fingers",
             "three_fingers_v2",
             "middle_finger",

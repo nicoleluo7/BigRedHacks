@@ -289,7 +289,7 @@ class GestureRecognitionMCPServer {
     switch (action) {
       case "open_tab":
         return await this.openBrowserTab(
-          params.url || "https://www.google.com"
+          params.url || "https://www.netflix.com"
         );
 
       case "open_app":
@@ -329,6 +329,9 @@ class GestureRecognitionMCPServer {
 
       case "spotify_previous":
         return await this.spotifyPrevious();
+
+      case "close_tab":
+        return await this.closeLastTab();
 
       default:
         throw new Error(`Unknown action: ${action}`);
@@ -616,6 +619,41 @@ class GestureRecognitionMCPServer {
     }
   }
 
+  async closeLastTab() {
+    try {
+      let command;
+
+      switch (process.platform) {
+        case "darwin":
+          // Use Cmd+W to close the active tab
+          command = `osascript -e 'tell application "System Events" to keystroke "w" using command down'`;
+          break;
+        case "win32":
+          // Use Ctrl+W to close the active tab
+          command = `powershell -c "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('^w')"`;
+          break;
+        case "linux":
+          // Use Ctrl+W to close the active tab
+          command = `xdotool key ctrl+w`;
+          break;
+        default:
+          throw new Error(`Close tab not supported on ${process.platform}`);
+      }
+
+      return new Promise((resolve, reject) => {
+        exec(command, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve("Closed last tab");
+          }
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to close tab: ${error.message}`);
+    }
+  }
+
   async updateMapping(args) {
     const { gesture, action, actionParams } = args;
 
@@ -755,6 +793,11 @@ class GestureRecognitionMCPServer {
         description: "Go to previous track in Spotify",
         params: {},
       },
+      {
+        name: "close_tab",
+        description: "Close the last opened browser tab",
+        params: {},
+      },
     ];
   }
 
@@ -789,7 +832,7 @@ class GestureRecognitionMCPServer {
   initializeDefaultMappings() {
     this.gestureMappings.set("wave", {
       action: "open_tab",
-      params: { url: "https://www.google.com" },
+      params: { url: "https://www.netflix.com" },
       updatedAt: new Date().toISOString(),
     });
 
