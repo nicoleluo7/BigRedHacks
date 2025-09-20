@@ -47,6 +47,14 @@ class GestureRecognizer:
         )
         self.mp_drawing = mp.solutions.drawing_utils
 
+        # Wave detection variables
+        self.hand_positions = []  # Store recent hand positions for wave detection
+        self.wave_threshold = (
+            0.05  # Minimum movement for wave detection (more sensitive)
+        )
+        self.wave_frames = 8  # Number of frames to analyze for wave (shorter window)
+        self.last_wave_time = 0  # Prevent rapid wave detections
+
         # Gesture detection state
         self.last_gesture = None
         self.last_gesture_time = 0
@@ -141,6 +149,10 @@ class GestureRecognizer:
         extended_count = sum(fingers_up)
 
         # Enhanced rule-based gesture classification
+
+        # WAVE: Check for wave motion pattern first (motion-based)
+        if self.detect_wave(landmarks):
+            return "wave"
 
         # THREE FINGER SIGN V2: Thumb, index, and middle fingers up (check FIRST)
         if (
@@ -266,6 +278,89 @@ class GestureRecognizer:
         # Default: No recognized gesture
         return None
 
+    def detect_wave(self, landmarks) -> bool:
+        """
+        Detect wave gesture based on hand movement patterns.
+
+        Args:
+            landmarks: MediaPipe hand landmarks
+
+        Returns:
+            True if wave gesture is detected
+        """
+        import time
+
+        if not landmarks:
+            return False
+
+        # Get wrist position (landmark 0) as reference point
+        wrist = landmarks.landmark[0]
+        current_pos = (wrist.x, wrist.y)
+        current_time = time.time()
+
+        # Prevent rapid wave detections (cooldown)
+        if current_time - self.last_wave_time < 2.0:
+            return False
+
+        # Store current position
+        self.hand_positions.append(current_pos)
+
+        # Keep only recent positions
+        if len(self.hand_positions) > self.wave_frames:
+            self.hand_positions.pop(0)
+
+        # Need enough positions to analyze
+        if len(self.hand_positions) < self.wave_frames:
+            return False
+
+        # Analyze movement pattern for wave
+        movements = []
+        for i in range(1, len(self.hand_positions)):
+            prev_pos = self.hand_positions[i - 1]
+            curr_pos = self.hand_positions[i]
+
+            # Calculate horizontal movement (x-axis for wave)
+            x_movement = curr_pos[0] - prev_pos[0]
+            movements.append(x_movement)
+
+        # Check for alternating left-right movement pattern
+        direction_changes = 0
+        significant_movements = 0
+
+        for i in range(1, len(movements)):
+            # Count significant movements
+            if abs(movements[i]) > self.wave_threshold:
+                significant_movements += 1
+
+            # Count direction changes (left-right-left or right-left-right)
+            if (
+                movements[i - 1] * movements[i] < 0
+            ):  # Different signs = direction change
+                if (
+                    abs(movements[i - 1]) > self.wave_threshold
+                    and abs(movements[i]) > self.wave_threshold
+                ):
+                    direction_changes += 1
+
+        # Debug logging for wave detection - always show when we have enough frames
+        if len(self.hand_positions) == self.wave_frames:
+            logger = logging.getLogger(__name__)
+            logger.info(
+                f"🌊 Wave analysis: dir_changes={direction_changes}, sig_movements={significant_movements}, movements={movements[:3]}..."
+            )
+
+        # Wave detected if we have enough direction changes and movements (even more lenient)
+        if direction_changes >= 1 and significant_movements >= 2:
+            self.last_wave_time = current_time
+            self.hand_positions = []  # Reset positions after detection
+            logger = logging.getLogger(__name__)
+            logger.info(
+                f"🌊 Wave detected! dir_changes={direction_changes}, sig_movements={significant_movements}"
+            )
+            return True
+
+        return False
+
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Optional[str]]:
         """
         Process a single frame for gesture recognition.
@@ -334,6 +429,7 @@ class GestureRecognizer:
     def get_supported_gestures(self) -> List[str]:
         """Get list of supported gestures."""
         return [
+            "wave",
             "fist",
             "open_palm",
             "thumbs_up",
