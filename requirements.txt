@@ -15,3 +15,6 @@ scikit-learn>=1.0.0
 
 # Development and debugging
 python-dotenv>=0.19.0
+
+# Image processing for camera streaming
+Pillow>=9.0.0

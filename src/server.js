@@ -8,7 +8,7 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import express from "express";
 import cors from "cors";
 import { spawn, exec } from "child_process";
@@ -39,6 +39,7 @@ class GestureRecognitionMCPServer {
     this.connectedClients = new Set();
     this.wsServer = null;
     this.httpServer = null;
+    this.latestFrame = null;
     this.configPath = join(__dirname, "..", "config", "gesture-mappings.json");
 
     this.setupMCPHandlers();
@@ -854,6 +855,9 @@ class GestureRecognitionMCPServer {
 
     // Serve static files for the frontend
     app.use("/static", express.static(join(__dirname, "..", "public")));
+    
+    // Serve the React frontend
+    app.use(express.static(join(__dirname, "..", "frontend", "build")));
 
     // API endpoints for frontend integration
     app.get("/api/gestures", (req, res) => {
@@ -874,6 +878,109 @@ class GestureRecognitionMCPServer {
         await this.performAction({ gesture, timestamp });
         res.json({ success: true });
       } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Camera streaming endpoint
+    app.post("/api/camera-frame", (req, res) => {
+      const { image, timestamp, gesture } = req.body;
+      
+      // Store the latest frame data
+      this.latestFrame = {
+        image,
+        timestamp,
+        gesture
+      };
+      
+      // Broadcast to all connected WebSocket clients
+      if (this.connectedClients.size > 0) {
+        const message = JSON.stringify({
+          type: "camera_frame",
+          image,
+          timestamp,
+          gesture
+        });
+        
+        this.connectedClients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            try {
+              client.send(message);
+            } catch (error) {
+              console.error("Error sending camera frame:", error);
+            }
+          }
+        });
+      }
+      
+      res.json({ success: true });
+    });
+
+    // Get latest camera frame
+    app.get("/api/camera-frame", (req, res) => {
+      if (this.latestFrame) {
+        res.json(this.latestFrame);
+      } else {
+        res.status(404).json({ error: "No camera frame available" });
+      }
+    });
+
+    // Restart Python service endpoint
+    app.post("/api/restart-python", async (req, res) => {
+      try {
+        console.log("Restarting Python service...");
+        
+        // Kill any existing Python processes
+        exec("pkill -f 'python.*run.py'", (error) => {
+          if (error && !error.message.includes("No matching processes")) {
+            console.error("Error killing Python processes:", error);
+          }
+        });
+
+        // Wait a moment for processes to be killed
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Start Python service with web streaming
+        const pythonProcess = spawn("python", ["run.py", "--camera-index", "1", "--web-stream"], {
+          cwd: join(__dirname, ".."),
+          detached: false,
+          stdio: ["ignore", "pipe", "pipe"]
+        });
+
+        // Store the process reference
+        this.pythonProcess = pythonProcess;
+
+        // Handle process events
+        pythonProcess.stdout.on("data", (data) => {
+          console.log(`Python stdout: ${data}`);
+        });
+
+        pythonProcess.stderr.on("data", (data) => {
+          console.log(`Python stderr: ${data}`);
+        });
+
+        pythonProcess.on("close", (code) => {
+          console.log(`Python process exited with code ${code}`);
+          this.pythonProcess = null;
+        });
+
+        pythonProcess.on("error", (error) => {
+          console.error("Failed to start Python process:", error);
+          res.status(500).json({ error: "Failed to restart Python service" });
+          return;
+        });
+
+        // Give it a moment to start
+        setTimeout(() => {
+          res.json({ 
+            success: true, 
+            message: "Python service restarted successfully",
+            pid: pythonProcess.pid
+          });
+        }, 2000);
+
+      } catch (error) {
+        console.error("Error restarting Python service:", error);
         res.status(500).json({ error: error.message });
       }
     });

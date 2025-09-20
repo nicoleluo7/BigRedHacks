@@ -23,6 +23,7 @@ from datetime import datetime
 # Import our modules
 from gesture_recognition import GestureRecognizer, CameraManager
 from actions_client import ActionsClient, map_gesture_name
+from camera_streamer import initialize_camera_streamer, get_camera_streamer
 
 # Configure logging
 logging.basicConfig(
@@ -42,6 +43,7 @@ class GestureRecognitionApp:
         use_websocket: bool = False,
         show_display: bool = True,
         debug: bool = False,
+        web_stream: bool = False,
     ):
         """
         Initialize the gesture recognition application.
@@ -58,12 +60,21 @@ class GestureRecognitionApp:
         self.camera_index = camera_index
         self.use_websocket = use_websocket
         self.show_display = show_display
+        self.web_stream = web_stream
         self.running = False
 
         # Initialize components
         self.camera = CameraManager(camera_index=camera_index)
         self.recognizer = GestureRecognizer()
         self.actions_client = ActionsClient(use_websocket=use_websocket)
+        
+        # Initialize camera streamer for web frontend (only if web streaming is enabled)
+        self.camera_streamer = None
+        if web_stream:
+            self.camera_streamer = initialize_camera_streamer(
+                camera_index=camera_index,
+                server_url="http://localhost:3001"
+            )
 
         # Statistics
         self.frames_processed = 0
@@ -116,6 +127,11 @@ class GestureRecognitionApp:
 
         logger.info("✅ Camera started successfully")
 
+        # Start camera streaming to web frontend (if enabled)
+        if self.camera_streamer:
+            self.camera_streamer.start_streaming()
+            logger.info("✅ Camera streaming to web frontend started")
+
         # Show supported gestures
         supported_gestures = self.recognizer.get_supported_gestures()
         logger.info(f"🤚 Supported gestures: {supported_gestures}")
@@ -146,6 +162,10 @@ class GestureRecognitionApp:
         # Process frame for gesture recognition
         annotated_frame, detected_gesture = self.recognizer.process_frame(frame)
 
+        # Update camera streamer with current frame (if enabled)
+        if self.camera_streamer:
+            self.camera_streamer.update_frame(annotated_frame, detected_gesture)
+
         # Handle detected gesture
         if detected_gesture:
             self.gestures_detected += 1
@@ -164,8 +184,8 @@ class GestureRecognitionApp:
                 target=self._send_gesture_async, args=(mapped_gesture,), daemon=True
             ).start()
 
-        # Display frame if enabled
-        if self.show_display:
+        # Display frame if enabled (hide OpenCV window when streaming to web)
+        if self.show_display and not self.web_stream:
             # Add status information to frame
             self._add_status_overlay(annotated_frame)
 
@@ -308,6 +328,8 @@ class GestureRecognitionApp:
         self.camera.stop()
         self.recognizer.cleanup()
         self.actions_client.cleanup()
+        if self.camera_streamer:
+            self.camera_streamer.stop_camera()
 
         if self.show_display:
             cv2.destroyAllWindows()
@@ -332,6 +354,11 @@ def main():
         action="store_true",
         help="Disable camera feed display (headless mode)",
     )
+    parser.add_argument(
+        "--web-stream",
+        action="store_true",
+        help="Stream camera feed to web frontend instead of showing OpenCV window",
+    )
 
     args = parser.parse_args()
 
@@ -341,6 +368,7 @@ def main():
         use_websocket=args.use_websocket,
         show_display=not args.no_display,
         debug=args.debug,
+        web_stream=args.web_stream,
     )
 
     # Setup signal handlers for graceful shutdown
