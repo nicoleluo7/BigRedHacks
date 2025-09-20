@@ -1,0 +1,17 @@
+# Gesture Recognition Module Dependencies
+# Core computer vision and hand tracking
+mediapipe>=0.10.0
+opencv-python>=4.8.0
+numpy>=1.21.0
+
+# HTTP client for sending requests to action server
+requests>=2.25.0
+
+# Optional: WebSocket client for real-time communication
+websocket-client>=1.0.0
+
+# Optional: For more advanced gesture classification later
+scikit-learn>=1.0.0
+
+# Development and debugging
+python-dotenv>=0.19.0
