@@ -126,12 +126,20 @@ class GestureRecognizer:
         def is_finger_extended(tip, pip, mcp, finger_name=""):
             """Check if finger is extended with more accuracy."""
             if finger_name == "thumb":
-                # For thumb: more relaxed detection - just check if tip is away from palm
+                # For thumb: stricter detection to avoid false positives
                 tip_to_wrist = np.linalg.norm(tip - wrist)
                 mcp_to_wrist = np.linalg.norm(thumb_mcp - wrist)
 
-                # Relaxed thumb detection - just needs to be extended away from palm
-                return tip_to_wrist > mcp_to_wrist * 1.4  # 20% further than MCP
+                # Also check if thumb is pointing upward (y-coordinate)
+                thumb_pointing_up = (
+                    thumb_tip[1] < thumb_mcp[1] - 0.02
+                )  # Thumb tip should be above MCP
+
+                # Stricter thumb detection - needs distance AND upward pointing
+                distance_check = (
+                    tip_to_wrist > mcp_to_wrist * 1.6
+                )  # More strict distance
+                return distance_check and thumb_pointing_up
             else:
                 # For other fingers: tip should be above PIP and PIP above MCP
                 return tip[1] < pip[1] < mcp[1]
@@ -164,17 +172,27 @@ class GestureRecognizer:
         ):
             return "three_fingers_serbian_style"
 
-        # FIST: No fingers extended
-        elif extended_count == 0:
+        # FIST: No fingers extended OR thumb slightly extended but not pointing up
+        if extended_count == 0:
             return "fist"
+        elif extended_count == 1 and fingers_up[0]:
+            # Additional check for thumbs up - thumb must be clearly pointing up
+            # Check if thumb is significantly above other fingers
+            other_fingers_y = [index_tip[1], middle_tip[1], ring_tip[1], pinky_tip[1]]
+            avg_other_fingers_y = np.mean(other_fingers_y)
+
+            # Thumb should be significantly above other fingers for thumbs up
+            thumb_clearly_up = thumb_tip[1] < avg_other_fingers_y - 0.05
+
+            if thumb_clearly_up:
+                return "thumbs_up"
+            else:
+                # If thumb is only slightly extended, it's probably a fist
+                return "fist"
 
         # OPEN PALM: All fingers extended
         elif extended_count == 5:
             return "open_palm"
-
-        # THUMBS UP: Only thumb extended (more strict)
-        elif extended_count == 1 and fingers_up[0]:
-            return "thumbs_up"
 
         # PEACE SIGN: Index and middle fingers extended, others down (relaxed)
         elif (
