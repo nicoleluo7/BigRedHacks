@@ -330,6 +330,18 @@ class GestureRecognitionMCPServer {
       case "spotify_previous":
         return await this.spotifyPrevious();
 
+      case "spotify_volume_up":
+        return await this.spotifyVolumeUp();
+
+      case "spotify_volume_down":
+        return await this.spotifyVolumeDown();
+
+      case "system_volume_up":
+        return await this.systemVolumeUp();
+
+      case "system_volume_down":
+        return await this.systemVolumeDown();
+
       case "close_tab":
         return await this.closeLastTab();
 
@@ -619,6 +631,154 @@ class GestureRecognitionMCPServer {
     }
   }
 
+  async spotifyVolumeUp() {
+    try {
+      let command;
+
+      switch (process.platform) {
+        case "darwin":
+          // Use AppleScript to increase Spotify volume
+          command = `osascript -e 'tell application "Spotify" to set sound volume to sound volume + 10'`;
+          break;
+        case "win32":
+          // Windows volume up key
+          command = `powershell -c "(New-Object -comObject WScript.Shell).SendKeys([char]175)"`;
+          break;
+        case "linux":
+          // Linux volume up using pactl
+          command = `pactl set-sink-volume @DEFAULT_SINK@ +5%`;
+          break;
+        default:
+          throw new Error(
+            `Spotify volume control not supported on ${process.platform}`
+          );
+      }
+
+      return new Promise((resolve, reject) => {
+        exec(command, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve("Spotify volume increased");
+          }
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to control Spotify volume: ${error.message}`);
+    }
+  }
+
+  async spotifyVolumeDown() {
+    try {
+      let command;
+
+      switch (process.platform) {
+        case "darwin":
+          // Use AppleScript to decrease Spotify volume
+          command = `osascript -e 'tell application "Spotify" to set sound volume to sound volume - 10'`;
+          break;
+        case "win32":
+          // Windows volume down key
+          command = `powershell -c "(New-Object -comObject WScript.Shell).SendKeys([char]174)"`;
+          break;
+        case "linux":
+          // Linux volume down using pactl
+          command = `pactl set-sink-volume @DEFAULT_SINK@ -5%`;
+          break;
+        default:
+          throw new Error(
+            `Spotify volume control not supported on ${process.platform}`
+          );
+      }
+
+      return new Promise((resolve, reject) => {
+        exec(command, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve("Spotify volume decreased");
+          }
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to control Spotify volume: ${error.message}`);
+    }
+  }
+
+  async systemVolumeUp() {
+    try {
+      let command;
+
+      switch (process.platform) {
+        case "darwin":
+          // Direct volume control - increase by 10%
+          command = `osascript -e 'set volume output volume (output volume of (get volume settings) + 10)'`;
+          break;
+        case "win32":
+          // Windows volume up key
+          command = `powershell -c "(New-Object -comObject WScript.Shell).SendKeys([char]175)"`;
+          break;
+        case "linux":
+          // Linux volume up using pactl
+          command = `pactl set-sink-volume @DEFAULT_SINK@ +5%`;
+          break;
+        default:
+          throw new Error(
+            `System volume control not supported on ${process.platform}`
+          );
+      }
+
+      return new Promise((resolve, reject) => {
+        exec(command, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve("System volume increased");
+          }
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to control system volume: ${error.message}`);
+    }
+  }
+
+  async systemVolumeDown() {
+    try {
+      let command;
+
+      switch (process.platform) {
+        case "darwin":
+          // Direct volume control - decrease by 10%
+          command = `osascript -e 'set volume output volume (output volume of (get volume settings) - 10)'`;
+          break;
+        case "win32":
+          // Windows volume down key
+          command = `powershell -c "(New-Object -comObject WScript.Shell).SendKeys([char]174)"`;
+          break;
+        case "linux":
+          // Linux volume down using pactl
+          command = `pactl set-sink-volume @DEFAULT_SINK@ -5%`;
+          break;
+        default:
+          throw new Error(
+            `System volume control not supported on ${process.platform}`
+          );
+      }
+
+      return new Promise((resolve, reject) => {
+        exec(command, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve("System volume decreased");
+          }
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to control system volume: ${error.message}`);
+    }
+  }
+
   async closeLastTab() {
     try {
       let command;
@@ -711,6 +871,14 @@ class GestureRecognitionMCPServer {
       serverTime: new Date().toISOString(),
     };
 
+    // Store in recent gestures (keep last 50)
+    if (this.recentGestures) {
+      this.recentGestures.unshift(event);
+      if (this.recentGestures.length > 50) {
+        this.recentGestures = this.recentGestures.slice(0, 50);
+      }
+    }
+
     // Log the gesture event
     console.log(`Gesture detected: ${gesture} -> ${action}`);
 
@@ -791,6 +959,26 @@ class GestureRecognitionMCPServer {
       {
         name: "spotify_previous",
         description: "Go to previous track in Spotify",
+        params: {},
+      },
+      {
+        name: "spotify_volume_up",
+        description: "Increase Spotify volume",
+        params: {},
+      },
+      {
+        name: "spotify_volume_down",
+        description: "Decrease Spotify volume",
+        params: {},
+      },
+      {
+        name: "system_volume_up",
+        description: "Increase system volume (F12 key)",
+        params: {},
+      },
+      {
+        name: "system_volume_down",
+        description: "Decrease system volume (F11 key)",
         params: {},
       },
       {
@@ -896,7 +1084,11 @@ class GestureRecognitionMCPServer {
 
     app.post("/api/gestures", (req, res) => {
       const { gesture, action, params } = req.body;
-      this.gestureMappings.set(gesture, { action, params: params || {} });
+      this.gestureMappings.set(gesture, { 
+        action, 
+        params: params || {},
+        updatedAt: new Date().toISOString()
+      });
       this.saveGestureMappings();
       res.json({ success: true });
     });
@@ -973,6 +1165,13 @@ class GestureRecognitionMCPServer {
 
     app.get("/api/python-status", (req, res) => {
       res.json({ status: pythonStatus });
+    });
+
+    // Store recent gestures
+    this.recentGestures = [];
+
+    app.get("/api/recent-gestures", (req, res) => {
+      res.json(this.recentGestures);
     });
 
     this.httpServer = app.listen(3001, () => {

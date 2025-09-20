@@ -203,19 +203,23 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-sky rounded-xl shadow-sky border border-sky-200 p-6 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-purple rounded-full opacity-30 animate-float"></div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-mint rounded-full opacity-30 animate-float" style={{animationDelay: '1s'}}></div>
+        
+        <div className="flex items-center justify-between relative z-10">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg">
               Gesture Configuration
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-white/90 mt-1">
               Configure which actions are triggered by each gesture
             </p>
           </div>
           <button
             onClick={() => setShowAddForm(true)}
-            className="btn-primary flex items-center space-x-2"
+            className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 hover:shadow-glow-purple transition-all duration-300 flex items-center space-x-2 px-4 py-2 rounded-lg"
           >
             <Plus className="w-4 h-4" />
             <span>Add Mapping</span>
@@ -244,9 +248,10 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
 
       {/* Add/Edit Form */}
       {showAddForm && (
-        <div className="card">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 animate-slide-up">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <div className="w-2 h-2 bg-gradient-mint rounded-full mr-3 animate-pulse"></div>
               {editingGesture ? "Edit Mapping" : "Add New Mapping"}
             </h3>
             <button
@@ -255,7 +260,7 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
                 setEditingGesture(null);
                 setFormData({ gesture: "", action: "", params: {} });
               }}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-all duration-300"
             >
               <X className="w-5 h-5" />
             </button>
@@ -333,14 +338,14 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
                   setEditingGesture(null);
                   setFormData({ gesture: "", action: "", params: {} });
                 }}
-                className="btn-secondary"
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-all duration-300 hover:scale-105"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary flex items-center space-x-2"
+                className="bg-gradient-mint hover:shadow-glow-mint text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -360,14 +365,17 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
       )}
 
       {/* Current Mappings */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="w-2 h-2 bg-gradient-purple rounded-full mr-3 animate-pulse"></div>
           Current Mappings
         </h3>
 
         {Object.entries(gestureMappings).length === 0 ? (
           <div className="text-center py-8">
-            <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <div className="w-16 h-16 bg-gradient-sky rounded-full flex items-center justify-center mx-auto mb-4 animate-float">
+              <Settings className="w-8 h-8 text-white" />
+            </div>
             <p className="text-gray-500">No gesture mappings configured</p>
             <p className="text-sm text-gray-400">
               Add your first mapping above to get started
@@ -375,14 +383,15 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(gestureMappings).map(([gesture, mapping]) => (
+            {Object.entries(gestureMappings).map(([gesture, mapping], index) => (
               <div
                 key={gesture}
-                className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105 animate-slide-up"
+                style={{animationDelay: `${index * 0.1}s`}}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3 flex-1">
-                    <div className="text-2xl">{getGestureIcon(gesture)}</div>
+                    <div className="text-2xl animate-bounce-slow">{getGestureIcon(gesture)}</div>
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 capitalize">
                         {gesture.replace("_", " ")}
@@ -405,14 +414,14 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
                   <div className="flex items-center space-x-1">
                     <button
                       onClick={() => handleEdit(gesture, mapping)}
-                      className="p-1 text-gray-400 hover:text-primary-600"
+                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-300"
                       title="Edit mapping"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(gesture)}
-                      className="p-1 text-gray-400 hover:text-danger-600"
+                      className="p-2 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-all duration-300"
                       title="Delete mapping"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -426,8 +435,9 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
       </div>
 
       {/* Available Gestures */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="w-2 h-2 bg-gradient-teal rounded-full mr-3 animate-pulse"></div>
           Available Gestures
         </h3>
         <p className="text-gray-600 mb-4">
@@ -436,12 +446,13 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {Object.entries(mergedMappings)
             .filter(([_, mapping]) => !mapping)
-            .map(([gesture]) => (
+            .map(([gesture], index) => (
               <div
                 key={gesture}
-                className="bg-gray-100 rounded-lg p-3 text-center"
+                className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg p-3 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 animate-slide-up"
+                style={{animationDelay: `${index * 0.05}s`}}
               >
-                <div className="text-2xl mb-1">{getGestureIcon(gesture)}</div>
+                <div className="text-2xl mb-1 animate-bounce-slow">{getGestureIcon(gesture)}</div>
                 <div className="text-sm text-gray-700 capitalize">
                   {gesture.replace("_", " ")}
                 </div>

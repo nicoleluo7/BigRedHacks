@@ -155,23 +155,27 @@ function Statistics({ recentGestures }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-purple rounded-xl shadow-purple border border-purple-200 p-6 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-mint rounded-full opacity-30 animate-float"></div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-sky rounded-full opacity-30 animate-float" style={{animationDelay: '1s'}}></div>
+        
+        <div className="flex items-center justify-between relative z-10">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gesture Statistics</h1>
-            <p className="text-gray-600 mt-1">Analyze gesture detection performance and usage patterns</p>
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg">Gesture Statistics</h1>
+            <p className="text-white/90 mt-1">Analyze gesture detection performance and usage patterns</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2">
+            <Calendar className="w-5 h-5 text-white" />
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="input-field w-auto"
+              className="bg-transparent text-white border-none outline-none"
             >
-              <option value="1h">Last Hour</option>
-              <option value="24h">Last 24 Hours</option>
-              <option value="7d">Last 7 Days</option>
-              <option value="all">All Time</option>
+              <option value="1h" className="text-gray-900">Last Hour</option>
+              <option value="24h" className="text-gray-900">Last 24 Hours</option>
+              <option value="7d" className="text-gray-900">Last 7 Days</option>
+              <option value="all" className="text-gray-900">All Time</option>
             </select>
           </div>
         </div>
@@ -179,52 +183,52 @@ function Statistics({ recentGestures }) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card">
+        <div className="bg-gradient-mint rounded-xl shadow-mint border border-mint-200 p-6 hover:shadow-glow-mint transition-all duration-300 animate-slide-up">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Zap className="w-8 h-8 text-primary-600" />
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Zap className="w-8 h-8 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Gestures</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalGestures}</p>
+              <p className="text-sm font-medium text-white/80">Total Gestures</p>
+              <p className="text-2xl font-bold text-white">{stats.totalGestures}</p>
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="bg-gradient-teal rounded-xl shadow-teal border border-teal-200 p-6 hover:shadow-glow-mint transition-all duration-300 animate-slide-up" style={{animationDelay: '0.1s'}}>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <TrendingUp className="w-8 h-8 text-success-600" />
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <TrendingUp className="w-8 h-8 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Success Rate</p>
-              <p className="text-2xl font-bold text-gray-900">{getSuccessRate()}%</p>
+              <p className="text-sm font-medium text-white/80">Success Rate</p>
+              <p className="text-2xl font-bold text-white">{getSuccessRate()}%</p>
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="bg-gradient-sky rounded-xl shadow-sky border border-sky-200 p-6 hover:shadow-glow-mint transition-all duration-300 animate-slide-up" style={{animationDelay: '0.2s'}}>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Activity className="w-8 h-8 text-warning-600" />
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Activity className="w-8 h-8 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Gestures/Hour</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.gesturesPerHour}</p>
+              <p className="text-sm font-medium text-white/80">Gestures/Hour</p>
+              <p className="text-2xl font-bold text-white">{stats.gesturesPerHour}</p>
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="bg-gradient-purple rounded-xl shadow-purple border border-purple-200 p-6 hover:shadow-glow-purple transition-all duration-300 animate-slide-up" style={{animationDelay: '0.3s'}}>
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <BarChart3 className="w-8 h-8 text-purple-600" />
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <BarChart3 className="w-8 h-8 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Most Used</p>
+              <p className="text-sm font-medium text-white/80">Most Used</p>
               <div className="flex items-center space-x-2">
-                <span className="text-lg">{getGestureIcon(stats.mostUsedGesture)}</span>
-                <p className="text-sm font-medium text-gray-900 capitalize">
+                <span className="text-lg animate-bounce-slow">{getGestureIcon(stats.mostUsedGesture)}</span>
+                <p className="text-sm font-medium text-white capitalize">
                   {stats.mostUsedGesture ? stats.mostUsedGesture.replace('_', ' ') : 'None'}
                 </p>
               </div>
@@ -235,11 +239,16 @@ function Statistics({ recentGestures }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gesture Frequency Chart */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Gesture Frequency</h3>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className="w-2 h-2 bg-gradient-mint rounded-full mr-3 animate-pulse"></div>
+            Gesture Frequency
+          </h3>
           {getAllGestures().length === 0 ? (
             <div className="text-center py-8">
-              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <div className="w-16 h-16 bg-gradient-mint rounded-full flex items-center justify-center mx-auto mb-4 animate-float">
+                <BarChart3 className="w-8 h-8 text-white" />
+              </div>
               <p className="text-gray-500">No gesture data available</p>
             </div>
           ) : (
@@ -250,16 +259,16 @@ function Statistics({ recentGestures }) {
                 const percentage = maxFrequency > 0 ? (frequency / maxFrequency) * 100 : 0;
                 
                 return (
-                  <div key={gesture} className="flex items-center space-x-3">
+                  <div key={gesture} className="flex items-center space-x-3 animate-slide-up" style={{animationDelay: `${index * 0.1}s`}}>
                     <div className="flex items-center space-x-2 w-20">
-                      <span className="text-lg">{getGestureIcon(gesture)}</span>
+                      <span className="text-lg animate-bounce-slow">{getGestureIcon(gesture)}</span>
                       <span className="text-xs text-gray-600 capitalize truncate">
                         {gesture.replace('_', ' ')}
                       </span>
                     </div>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
                       <div
-                        className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-gradient-mint h-3 rounded-full transition-all duration-1000 ease-out"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
@@ -274,30 +283,37 @@ function Statistics({ recentGestures }) {
         </div>
 
         {/* Success/Failure Breakdown */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Success/Failure Breakdown</h3>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className="w-2 h-2 bg-gradient-teal rounded-full mr-3 animate-pulse"></div>
+            Success/Failure Breakdown
+          </h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-success-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-gradient-mint rounded-lg animate-slide-up">
               <div className="flex items-center space-x-3">
-                <CheckCircle className="w-6 h-6 text-success-600" />
-                <span className="font-medium text-success-900">Successful</span>
+                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-medium text-white">Successful</span>
               </div>
-              <span className="text-2xl font-bold text-success-700">{stats.successfulGestures}</span>
+              <span className="text-2xl font-bold text-white">{stats.successfulGestures}</span>
             </div>
             
-            <div className="flex items-center justify-between p-4 bg-danger-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-red-500 to-red-600 rounded-lg animate-slide-up" style={{animationDelay: '0.1s'}}>
               <div className="flex items-center space-x-3">
-                <XCircle className="w-6 h-6 text-danger-600" />
-                <span className="font-medium text-danger-900">Failed</span>
+                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                  <XCircle className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-medium text-white">Failed</span>
               </div>
-              <span className="text-2xl font-bold text-danger-700">{stats.failedGestures}</span>
+              <span className="text-2xl font-bold text-white">{stats.failedGestures}</span>
             </div>
 
             {stats.failedGestures > 0 && (
-              <div className="mt-4 p-3 bg-warning-50 border border-warning-200 rounded-lg">
+              <div className="mt-4 p-3 bg-gradient-to-r from-yellow-400 to-orange-500 border border-yellow-300 rounded-lg animate-slide-up" style={{animationDelay: '0.2s'}}>
                 <div className="flex items-center space-x-2">
-                  <AlertTriangle className="w-4 h-4 text-warning-600" />
-                  <span className="text-sm text-warning-700">
+                  <AlertTriangle className="w-4 h-4 text-white" />
+                  <span className="text-sm text-white">
                     {getSuccessRate() < 80 ? 'Low success rate detected' : 'Some failures occurred'}
                   </span>
                 </div>
@@ -308,20 +324,25 @@ function Statistics({ recentGestures }) {
       </div>
 
       {/* Recent Gesture History */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Gesture History</h3>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="w-2 h-2 bg-gradient-sky rounded-full mr-3 animate-pulse"></div>
+          Recent Gesture History
+        </h3>
         {recentGestures.length === 0 ? (
           <div className="text-center py-8">
-            <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <div className="w-16 h-16 bg-gradient-sky rounded-full flex items-center justify-center mx-auto mb-4 animate-float">
+              <Clock className="w-8 h-8 text-white" />
+            </div>
             <p className="text-gray-500">No recent gestures detected</p>
             <p className="text-sm text-gray-400">Start making gestures to see them here</p>
           </div>
         ) : (
           <div className="space-y-3">
             {recentGestures.slice(0, 10).map((gesture, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 animate-slide-up" style={{animationDelay: `${index * 0.05}s`}}>
                 <div className="flex items-center space-x-3">
-                  <span className="text-xl">{getGestureIcon(gesture.gesture)}</span>
+                  <span className="text-xl animate-bounce-slow">{getGestureIcon(gesture.gesture)}</span>
                   <div>
                     <p className="font-medium text-gray-900 capitalize">
                       {gesture.gesture.replace('_', ' ')}
@@ -334,9 +355,13 @@ function Statistics({ recentGestures }) {
                 </div>
                 <div className="flex items-center space-x-2">
                   {gesture.success ? (
-                    <CheckCircle className="w-5 h-5 text-success-500" />
+                    <div className="p-1 bg-green-100 rounded-full">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
                   ) : (
-                    <XCircle className="w-5 h-5 text-danger-500" />
+                    <div className="p-1 bg-red-100 rounded-full">
+                      <XCircle className="w-5 h-5 text-red-600" />
+                    </div>
                   )}
                 </div>
               </div>

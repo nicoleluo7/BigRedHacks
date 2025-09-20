@@ -14,16 +14,20 @@ import {
   X,
   Wifi,
   WifiOff,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 // Components
 import Dashboard from "./components/Dashboard";
 import GestureConfig from "./components/GestureConfig";
 import Statistics from "./components/Statistics";
+import { DarkModeProvider, useDarkMode } from "./contexts/DarkModeContext";
 
 function Navigation() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: Activity },
@@ -32,13 +36,13 @@ function Navigation() {
   ];
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="bg-gradient-formal dark:bg-gradient-dark shadow-subtle dark:shadow-dark border-b border-primary-200 dark:border-dark-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">
-                🤚 Gesture Control
+              <h1 className="text-xl font-semibold text-white dark:text-dark-100">
+                Gesture Control System
               </h1>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -49,10 +53,10 @@ function Navigation() {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                    className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                       isActive
-                        ? "border-primary-500 text-gray-900"
-                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                        ? "text-white dark:text-dark-100 border-b-2 border-white dark:border-dark-100"
+                        : "text-white/80 dark:text-dark-300 hover:text-white dark:hover:text-dark-100"
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -63,8 +67,15 @@ function Navigation() {
             </div>
           </div>
 
-          {/* Connection Status */}
-          <div className="flex items-center">
+          {/* Dark Mode Toggle & Connection Status */}
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 text-white/80 dark:text-dark-300 hover:text-white dark:hover:text-dark-100 transition-colors duration-200"
+              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <ConnectionStatus />
           </div>
 
@@ -72,7 +83,7 @@ function Navigation() {
           <div className="sm:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              className="inline-flex items-center justify-center p-2 text-white/80 dark:text-dark-300 hover:text-white dark:hover:text-dark-100 transition-colors duration-200"
             >
               {isMobileMenuOpen ? (
                 <X className="block h-6 w-6" />
@@ -86,7 +97,7 @@ function Navigation() {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="sm:hidden">
+        <div className="sm:hidden bg-white/10 dark:bg-dark-800/90 backdrop-blur-md border-t border-white/20 dark:border-dark-700">
           <div className="pt-2 pb-3 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -95,10 +106,10 @@ function Navigation() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                  className={`block pl-3 pr-4 py-3 text-base font-medium transition-colors duration-200 ${
                     isActive
-                      ? "bg-primary-50 border-primary-500 text-primary-700"
-                      : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
+                      ? "text-white dark:text-dark-100 bg-white/10 dark:bg-dark-700/50"
+                      : "text-white/80 dark:text-dark-300 hover:text-white dark:hover:text-dark-100"
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -133,15 +144,15 @@ function ConnectionStatus() {
   }, []);
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-2 bg-white/10 dark:bg-dark-700/50 backdrop-blur-sm rounded-lg px-3 py-2">
       {isConnected ? (
-        <Wifi className="w-5 h-5 text-success-500" />
+        <Wifi className="w-5 h-5 text-white dark:text-dark-100" />
       ) : (
-        <WifiOff className="w-5 h-5 text-danger-500" />
+        <WifiOff className="w-5 h-5 text-white/60 dark:text-dark-400" />
       )}
       <span
         className={`text-sm font-medium ${
-          isConnected ? "text-success-700" : "text-danger-700"
+          isConnected ? "text-white dark:text-dark-100" : "text-white/60 dark:text-dark-400"
         }`}
       >
         {isConnected ? "Connected" : "Disconnected"}
@@ -161,6 +172,18 @@ function App() {
         console.log("Loaded gesture mappings:", data);
         setGestureMappings(data);
       });
+
+    // Poll for recent gestures every 2 seconds
+    const interval = setInterval(() => {
+      fetch("/api/recent-gestures")
+        .then((res) => res.json())
+        .then((data) => {
+          setRecentGestures(data);
+        })
+        .catch((err) => console.error("Failed to fetch recent gestures:", err));
+    }, 2000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleGestureDetected = (gestureData) => {
@@ -173,7 +196,7 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-900 transition-colors duration-300">
         <Navigation />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <Routes>
@@ -207,4 +230,12 @@ function App() {
   );
 }
 
-export default App;
+function AppWithProvider() {
+  return (
+    <DarkModeProvider>
+      <App />
+    </DarkModeProvider>
+  );
+}
+
+export default AppWithProvider;

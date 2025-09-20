@@ -296,6 +296,33 @@ class GestureRecognizer:
         ):
             return "four_fingers"
 
+        # PINCH SIGN: Thumb and index close together, others down
+        elif (
+            extended_count == 2
+            and fingers_up[0]
+            and fingers_up[1]
+            and not fingers_up[2]
+            and not fingers_up[3]
+            and not fingers_up[4]
+        ):
+            # Check if thumb and index are close (pinch gesture)
+            thumb_index_distance = np.linalg.norm(thumb_tip - index_tip)
+            if thumb_index_distance < 0.05:  # Threshold for "close"
+                return "pinch"
+
+        # SPOCK SIGN: Index and middle fingers separated (Vulcan salute)
+        elif (
+            fingers_up[1]
+            and fingers_up[2]
+            and not fingers_up[0]
+            and not fingers_up[3]
+            and not fingers_up[4]
+        ):
+            # Check if fingers are separated (not peace sign)
+            index_middle_distance = np.linalg.norm(index_tip - middle_tip)
+            if index_middle_distance > 0.08:  # Threshold for "separated"
+                return "spock"
+
         # OK SIGN: Thumb and index close together, middle/ring/pinky extended
         elif extended_count >= 3 and fingers_up[2] and fingers_up[3] and fingers_up[4]:
             # Check if thumb and index are close (OK sign approximation)
@@ -461,14 +488,19 @@ class GestureRecognizer:
             "fist",
             "open_palm",
             "thumbs_up",
+            "thumbs_down",
             "peace",
+            "victory",
             "call",
+            "hang_loose",
             "pointing",
             "l_shape",
             "rock",
-            "rock_sign",
+            "rock_on",
             "ok",
             "ok_sign",
+            "pinch",
+            "spock",
             "three_fingers",
             "three_fingers_v2",
             "middle_finger",

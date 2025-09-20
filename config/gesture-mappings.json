@@ -1,92 +1,29 @@
 {
-  "fist": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "open_palm": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "thumbs_up": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "peace": {
-    "action": "open_tab",
-    "params": { "url": "https://www.instagram.com/reels" },
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
   "pointing": {
     "action": "spotify_next",
     "params": {},
     "updatedAt": "2024-01-01T00:00:00.000Z"
   },
-  "l_shape": {
-    "action": "open_tab",
-    "params": { "url": "https://www.linkedin.com" },
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "rock_sign": {
+  "rock": {
     "action": "open_app",
-    "params": { "appName": "Spotify" },
+    "params": {
+      "appName": "Spotify"
+    },
     "updatedAt": "2024-01-01T00:00:00.000Z"
   },
-  "ok_sign": {
+  "ok": {
     "action": "spotify_play_pause",
     "params": {},
     "updatedAt": "2024-01-01T00:00:00.000Z"
   },
-  "three_fingers": {
-    "action": "close_tab",
+  "call": {
+    "action": "system_volume_up",
     "params": {},
     "updatedAt": "2024-01-01T00:00:00.000Z"
   },
-  "three_fingers_v2": {
-    "action": "notification",
+  "peace": {
+    "action": "system_volume_down",
     "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "middle_finger": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "ring_finger": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "pinky": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "two_fingers_ir": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "two_fingers_mr": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "four_fingers": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "call_sign": {
-    "action": "notification",
-    "params": {},
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  },
-  "wave": {
-    "action": "open_tab",
-    "params": { "url": "https://www.netflix.com" },
     "updatedAt": "2024-01-01T00:00:00.000Z"
   }
 }
