@@ -324,6 +324,15 @@ class GestureRecognitionMCPServer {
       case "custom_command":
         return await this.executeCustomCommand(params.command);
 
+      case "spotify_play_pause":
+        return await this.spotifyPlayPause();
+
+      case "spotify_next":
+        return await this.spotifyNext();
+
+      case "spotify_previous":
+        return await this.spotifyPrevious();
+
       default:
         throw new Error(`Unknown action: ${action}`);
     }
@@ -505,6 +514,111 @@ class GestureRecognitionMCPServer {
     });
   }
 
+  async spotifyPlayPause() {
+    try {
+      let command;
+
+      switch (process.platform) {
+        case "darwin":
+          command = `osascript -e 'tell application "Spotify" to playpause'`;
+          break;
+        case "win32":
+          // Windows media key simulation
+          command = `powershell -c "(New-Object -comObject WScript.Shell).SendKeys([char]179)"`;
+          break;
+        case "linux":
+          command = `dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause`;
+          break;
+        default:
+          throw new Error(
+            `Spotify control not supported on ${process.platform}`
+          );
+      }
+
+      return new Promise((resolve, reject) => {
+        exec(command, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve("Spotify play/pause toggled");
+          }
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to control Spotify: ${error.message}`);
+    }
+  }
+
+  async spotifyNext() {
+    try {
+      let command;
+
+      switch (process.platform) {
+        case "darwin":
+          command = `osascript -e 'tell application "Spotify" to next track'`;
+          break;
+        case "win32":
+          // Windows media key simulation
+          command = `powershell -c "(New-Object -comObject WScript.Shell).SendKeys([char]176)"`;
+          break;
+        case "linux":
+          command = `dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next`;
+          break;
+        default:
+          throw new Error(
+            `Spotify control not supported on ${process.platform}`
+          );
+      }
+
+      return new Promise((resolve, reject) => {
+        exec(command, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve("Spotify next track");
+          }
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to control Spotify: ${error.message}`);
+    }
+  }
+
+  async spotifyPrevious() {
+    try {
+      let command;
+
+      switch (process.platform) {
+        case "darwin":
+          command = `osascript -e 'tell application "Spotify" to previous track'`;
+          break;
+        case "win32":
+          // Windows media key simulation
+          command = `powershell -c "(New-Object -comObject WScript.Shell).SendKeys([char]177)"`;
+          break;
+        case "linux":
+          command = `dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous`;
+          break;
+        default:
+          throw new Error(
+            `Spotify control not supported on ${process.platform}`
+          );
+      }
+
+      return new Promise((resolve, reject) => {
+        exec(command, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve("Spotify previous track");
+          }
+        });
+      });
+    } catch (error) {
+      throw new Error(`Failed to control Spotify: ${error.message}`);
+    }
+  }
+
   async updateMapping(args) {
     const { gesture, action, actionParams } = args;
 
@@ -633,6 +747,21 @@ class GestureRecognitionMCPServer {
         name: "custom_command",
         description: "Execute a custom system command",
         params: { command: "string (required)" },
+      },
+      {
+        name: "spotify_play_pause",
+        description: "Play/pause Spotify music",
+        params: {},
+      },
+      {
+        name: "spotify_next",
+        description: "Skip to next track in Spotify",
+        params: {},
+      },
+      {
+        name: "spotify_previous",
+        description: "Go to previous track in Spotify",
+        params: {},
       },
     ];
   }

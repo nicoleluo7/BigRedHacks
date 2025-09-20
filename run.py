@@ -151,9 +151,9 @@ class GestureRecognitionApp:
             self.gestures_detected += 1
             logger.info(f"🤚 Gesture detected: {detected_gesture}")
 
-            # Check for pinky gesture to quit
-            if detected_gesture == "pinky":
-                logger.info("Pinky gesture detected - closing application")
+            # Check for middle finger gesture to quit
+            if detected_gesture == "middle_finger":
+                logger.info("Middle finger gesture detected - closing application")
                 return False
 
             # Map gesture name for action server
@@ -208,7 +208,7 @@ class GestureRecognitionApp:
             f"Frames: {self.frames_processed}",
             f"Gestures: {self.gestures_detected}",
             f"Mode: {'WebSocket' if self.use_websocket else 'HTTP'}",
-            "Press 'q' or pinky gesture to quit",
+            "Press 'q' or middle finger gesture to quit",
         ]
 
         # Available commands (top right corner, compact)
@@ -219,13 +219,13 @@ class GestureRecognitionApp:
             "Thumbs→None",
             "Peace→None",
             "CallSign→None",
-            "Point→None",
-            "Rock→None",
+            "Point→NextSong",
+            "Rock→Spotify",
             "3FingV2→None",
-            "Middle→None",
+            "Middle→QUIT",
             "Ring→None",
-            "Pinky→QUIT",
-            "OK→None",
+            "Pinky→None",
+            "OK→Play/Pause",
             "4Fing→None",
             "Wave→Google",
         ]

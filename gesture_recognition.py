@@ -26,7 +26,7 @@ class GestureRecognizer:
 
     def __init__(
         self,
-        min_detection_confidence: float = 0.7,
+        min_detection_confidence: float = 0.8,
         min_tracking_confidence: float = 0.5,
         max_num_hands: int = 1,
     ):
@@ -52,13 +52,13 @@ class GestureRecognizer:
         self.wave_threshold = (
             0.05  # Minimum movement for wave detection (more sensitive)
         )
-        self.wave_frames = 8  # Number of frames to analyze for wave (shorter window)
+        self.wave_frames = 5  # Number of frames to analyze for wave (shorter window)
         self.last_wave_time = 0  # Prevent rapid wave detections
 
         # Gesture detection state
         self.last_gesture = None
         self.last_gesture_time = 0
-        self.gesture_cooldown = 2.0  # Seconds between same gesture detections
+        self.gesture_cooldown = 3.0  # Seconds between same gesture detections
 
         logger.info("GestureRecognizer initialized")
 
@@ -131,7 +131,7 @@ class GestureRecognizer:
                 mcp_to_wrist = np.linalg.norm(thumb_mcp - wrist)
 
                 # Relaxed thumb detection - just needs to be extended away from palm
-                return tip_to_wrist > mcp_to_wrist * 1.2  # 20% further than MCP
+                return tip_to_wrist > mcp_to_wrist * 1.4  # 20% further than MCP
             else:
                 # For other fingers: tip should be above PIP and PIP above MCP
                 return tip[1] < pip[1] < mcp[1]
