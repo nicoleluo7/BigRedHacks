@@ -118,19 +118,12 @@ class GestureRecognizer:
         def is_finger_extended(tip, pip, mcp, finger_name=""):
             """Check if finger is extended with more accuracy."""
             if finger_name == "thumb":
-                # For thumb: check if tip is further from wrist than both IP and MCP
-                # AND check if thumb is pointing upward (not just away from palm)
+                # For thumb: more relaxed detection - just check if tip is away from palm
                 tip_to_wrist = np.linalg.norm(tip - wrist)
-                ip_to_wrist = np.linalg.norm(thumb_ip - wrist)
                 mcp_to_wrist = np.linalg.norm(thumb_mcp - wrist)
 
-                # Thumb must be clearly extended and pointing up
-                is_extended = tip_to_wrist > ip_to_wrist > mcp_to_wrist
-                is_pointing_up = (
-                    tip[1] < thumb_ip[1] < thumb_mcp[1]
-                )  # Y decreases upward
-
-                return is_extended and is_pointing_up
+                # Relaxed thumb detection - just needs to be extended away from palm
+                return tip_to_wrist > mcp_to_wrist * 1.2  # 20% further than MCP
             else:
                 # For other fingers: tip should be above PIP and PIP above MCP
                 return tip[1] < pip[1] < mcp[1]
@@ -149,8 +142,18 @@ class GestureRecognizer:
 
         # Enhanced rule-based gesture classification
 
+        # THREE FINGER SIGN V2: Thumb, index, and middle fingers up (check FIRST)
+        if (
+            fingers_up[0]
+            and fingers_up[1]
+            and fingers_up[2]
+            and not fingers_up[3]
+            and not fingers_up[4]
+        ):
+            return "three_fingers_serbian_style"
+
         # FIST: No fingers extended
-        if extended_count == 0:
+        elif extended_count == 0:
             return "fist"
 
         # OPEN PALM: All fingers extended
@@ -340,6 +343,7 @@ class GestureRecognizer:
             "rock_sign",
             "ok_sign",
             "three_fingers",
+            "three_fingers_v2",
             "middle_finger",
             "ring_finger",
             "pinky",

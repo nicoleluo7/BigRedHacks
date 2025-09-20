@@ -151,6 +151,11 @@ class GestureRecognitionApp:
             self.gestures_detected += 1
             logger.info(f"🤚 Gesture detected: {detected_gesture}")
 
+            # Check for pinky gesture to quit
+            if detected_gesture == "pinky":
+                logger.info("Pinky gesture detected - closing application")
+                return False
+
             # Map gesture name for action server
             mapped_gesture = map_gesture_name(detected_gesture)
 
@@ -187,6 +192,8 @@ class GestureRecognitionApp:
 
     def _add_status_overlay(self, frame):
         """Add status information overlay to the frame."""
+        height, width = frame.shape[:2]
+
         # Calculate FPS
         if self.start_time and self.frames_processed > 0:
             elapsed = time.time() - self.start_time
@@ -194,17 +201,37 @@ class GestureRecognitionApp:
         else:
             fps = 0
 
-        # Status text
+        # Status text (left side)
         status_lines = [
+            "🤚 Gesture Recognition MVP",
             f"FPS: {fps:.1f}",
             f"Frames: {self.frames_processed}",
             f"Gestures: {self.gestures_detected}",
             f"Mode: {'WebSocket' if self.use_websocket else 'HTTP'}",
-            "Press 'q' to quit",
+            "Press 'q' or pinky gesture to quit",
         ]
 
-        # Draw status overlay
-        y_offset = 60
+        # Available commands (top right corner, compact)
+        commands = [
+            "Commands:",
+            "Fist→Notify",
+            "Palm→Calc",
+            "Thumbs→None",
+            "Peace→None",
+            "CallSign→None",
+            "Point→None",
+            "Rock→None",
+            "3FingV2→None",
+            "Middle→None",
+            "Ring→None",
+            "Pinky→QUIT",
+            "OK→None",
+            "4Fing→None",
+            "Wave→Google",
+        ]
+
+        # Draw status overlay (left side, moved down)
+        y_offset = height - 180  # Position near bottom of frame
         for line in status_lines:
             cv2.putText(
                 frame,
@@ -212,10 +239,31 @@ class GestureRecognitionApp:
                 (10, y_offset),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
-                (255, 255, 255),
+                (0, 255, 0),  # Green color
                 1,
             )
-            y_offset += 20
+            y_offset += 25
+
+        # Draw commands overlay (top right corner, very small)
+        x_offset = width - 180  # Position in top right corner
+        y_offset = 15
+        for i, command in enumerate(commands):
+            color = (255, 255, 255)  # White
+            if "QUIT" in command:
+                color = (0, 0, 255)  # Red for quit command
+            elif i == 0:  # Header
+                color = (0, 255, 255)  # Yellow for header
+
+            cv2.putText(
+                frame,
+                command,
+                (x_offset, y_offset),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.25,  # Much smaller text
+                color,
+                1,
+            )
+            y_offset += 12  # Smaller line spacing
 
     def run(self):
         """Main application loop."""
