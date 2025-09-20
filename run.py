@@ -69,6 +69,17 @@ class GestureRecognitionApp:
         self.frames_processed = 0
         self.gestures_detected = 0
         self.start_time = None
+        self.camera_paused = False
+
+        # Gesture cooldown tracking
+        self.last_gesture_time = {}
+        self.gesture_cooldown = 2.0  # 2 seconds cooldown between same gestures
+        self.call_sign_cooldown = 6.0  # 6 seconds cooldown for call sign (pause/resume)
+
+        # Exit message tracking
+        self.showing_exit_message = False
+        self.exit_message_start_time = None
+        self.exit_initiated = False  # Flag to prevent actions after exit is initiated
 
         logger.info(f"GestureRecognitionApp initialized")
         logger.info(f"  Camera: {camera_index}")
@@ -146,15 +157,88 @@ class GestureRecognitionApp:
         # Process frame for gesture recognition
         annotated_frame, detected_gesture = self.recognizer.process_frame(frame)
 
+        # Check if we should exit after showing goodbye message
+        if self.showing_exit_message and self.exit_message_start_time:
+            current_time = time.time()
+            time_since_message = current_time - self.exit_message_start_time
+            remaining_time = 3.0 - time_since_message
+
+            # Show countdown every second
+            if int(time_since_message) != int(time_since_message - 0.1):  # Every second
+                if remaining_time > 0:
+                    print(f"        Exiting in {int(remaining_time) + 1} seconds...")
+
+            if time_since_message >= 3.0:  # Show message for 3 seconds
+                logger.info("Goodbye message displayed - exiting application")
+                print("        Exiting HandsFree application...")
+                return False
+
         # Handle detected gesture
         if detected_gesture:
+            # Skip all actions if exit has been initiated
+            if self.exit_initiated:
+                logger.info(
+                    f"⏹️ Gesture '{detected_gesture}' detected but exit initiated - ignoring"
+                )
+                return True  # Continue processing but don't execute any actions
+
+            current_time = time.time()
+
+            # Check cooldown for this gesture
+            if detected_gesture in self.last_gesture_time:
+                time_since_last = (
+                    current_time - self.last_gesture_time[detected_gesture]
+                )
+
+                # Use longer cooldown for call_sign, normal cooldown for others
+                cooldown_time = (
+                    self.call_sign_cooldown
+                    if detected_gesture == "call_sign"
+                    else self.gesture_cooldown
+                )
+
+                if time_since_last < cooldown_time:
+                    logger.info(
+                        f"⏳ Gesture '{detected_gesture}' in cooldown ({cooldown_time - time_since_last:.1f}s remaining)"
+                    )
+                    return True  # Continue processing but don't execute action
+
+            # Update last gesture time
+            self.last_gesture_time[detected_gesture] = current_time
             self.gestures_detected += 1
             logger.info(f"🤚 Gesture detected: {detected_gesture}")
 
             # Check for middle finger gesture to quit
             if detected_gesture == "middle_finger":
-                logger.info("Middle finger gesture detected - closing application")
-                return False
+                if not self.showing_exit_message:
+                    logger.info(
+                        "Middle finger gesture detected - showing goodbye message"
+                    )
+                    print("\n" + "=" * 60)
+                    print("                    GOODBYE!")
+                    print("              Thanks for using")
+                    print("                   HandsFree!")
+                    print("=" * 60 + "\n")
+                    self.showing_exit_message = True
+                    self.exit_message_start_time = current_time
+                    self.exit_initiated = True  # Prevent any further actions
+                return True  # Continue processing to show the message
+
+            # Check for call sign gesture to pause/unpause camera
+            if detected_gesture == "call_sign":
+                self.camera_paused = not self.camera_paused
+                if self.camera_paused:
+                    logger.info("📹 Camera paused - actions disabled")
+                else:
+                    logger.info("📹 Camera resumed - actions enabled")
+                return True  # Continue processing
+
+            # Skip sending other gestures to action server if camera is paused
+            if self.camera_paused:
+                logger.info(
+                    f"⏸️ Gesture '{detected_gesture}' detected but actions are paused"
+                )
+                return True  # Continue processing
 
             # Map gesture name for action server
             mapped_gesture = map_gesture_name(detected_gesture)
@@ -202,47 +286,84 @@ class GestureRecognitionApp:
             fps = 0
 
         # Status text (left side)
-        status_lines = [
-            "🤚 Gesture Recognition MVP",
-            f"FPS: {fps:.1f}",
-            f"Frames: {self.frames_processed}",
-            f"Gestures: {self.gestures_detected}",
-            f"Mode: {'WebSocket' if self.use_websocket else 'HTTP'}",
-            "Press 'q' or middle finger gesture to quit",
-        ]
+        if self.showing_exit_message:
+            status_lines = [
+                "GOODBYE!",
+                "",
+                "Thanks for using",
+                "HandsFree!",
+                "",
+                "Exiting in 3 seconds...",
+            ]
+        else:
+            status_lines = [
+                "🤚 Gesture Recognition MVP",
+                f"FPS: {fps:.1f}",
+                f"Frames: {self.frames_processed}",
+                f"Gestures: {self.gestures_detected}",
+                f"Mode: {'WebSocket' if self.use_websocket else 'HTTP'}",
+                f"Camera: {'PAUSED' if self.camera_paused else 'ACTIVE'}",
+                "Press 'q' or middle finger gesture to quit",
+            ]
 
         # Available commands (top right corner, compact)
         commands = [
             "Commands:",
             "Fist→Notify",
-            "Palm→Calc",
+            "Palm→None",
             "Thumbs→None",
-            "Peace→None",
-            "CallSign→None",
+            "Peace→Reels",
+            "CallSign→Pause/Resume",
             "Point→NextSong",
+            "LShape→LinkedIn",
             "Rock→Spotify",
-            "3FingV2→None",
+            "3Fing→CloseTab",
+            "3FingV2→Notification",
             "Middle→QUIT",
             "Ring→None",
             "Pinky→None",
             "OK→Play/Pause",
             "4Fing→None",
-            "Wave→Google",
+            "Wave→Netflix",
         ]
 
-        # Draw status overlay (left side, moved down)
-        y_offset = height - 180  # Position near bottom of frame
-        for line in status_lines:
-            cv2.putText(
-                frame,
-                line,
-                (10, y_offset),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
-                (0, 255, 0),  # Green color
-                1,
-            )
-            y_offset += 25
+        # Draw status overlay
+        if self.showing_exit_message:
+            # Center the goodbye message with bigger, bold, blue text
+            y_start = height // 2 - 60  # Center vertically
+            for i, line in enumerate(status_lines):
+                if line:  # Skip empty lines
+                    # Calculate text size for centering
+                    font_scale = 1.2 if i == 0 else 0.8  # Bigger for "GOODBYE!"
+                    thickness = 3 if i == 0 else 2  # Bolder for "GOODBYE!"
+                    (text_width, text_height), _ = cv2.getTextSize(
+                        line, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness
+                    )
+                    x_center = (width - text_width) // 2  # Center horizontally
+
+                    cv2.putText(
+                        frame,
+                        line,
+                        (x_center, y_start + i * 40),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        font_scale,
+                        (255, 0, 0),  # Blue color
+                        thickness,
+                    )
+        else:
+            # Normal status display (left side, moved down)
+            y_offset = height - 180  # Position near bottom of frame
+            for line in status_lines:
+                cv2.putText(
+                    frame,
+                    line,
+                    (10, y_offset),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 255, 0),  # Green color
+                    1,
+                )
+                y_offset += 25
 
         # Draw commands overlay (top right corner, very small)
         x_offset = width - 180  # Position in top right corner

@@ -308,8 +308,17 @@ GESTURE_MAPPINGS = {
     "peace": "peace",
     "call_sign": "call_sign",
     "pointing": "pointing",
+    "l_shape": "l_shape",
     "rock_sign": "rock_sign",
     "ok_sign": "ok_sign",
+    "three_fingers": "three_fingers",
+    "three_fingers_v2": "three_fingers_v2",
+    "middle_finger": "middle_finger",
+    "ring_finger": "ring_finger",
+    "pinky": "pinky",
+    "two_fingers_ir": "two_fingers_ir",
+    "two_fingers_mr": "two_fingers_mr",
+    "four_fingers": "four_fingers",
 }
 
 
