@@ -888,7 +888,7 @@ class GestureRecognitionMCPServer {
       content: [
         {
           type: "text",
-          text: `Gesture event logged: ${gesture} -> ${action}`
+          text: `Gesture event logged: ${gesture} -> ${action}`,
         },
       ],
     };
@@ -1065,7 +1065,6 @@ class GestureRecognitionMCPServer {
     }
   }
 
-
   setupHttpServer() {
     const app = express();
     app.use(cors());
@@ -1084,10 +1083,10 @@ class GestureRecognitionMCPServer {
 
     app.post("/api/gestures", (req, res) => {
       const { gesture, action, params } = req.body;
-      this.gestureMappings.set(gesture, { 
-        action, 
+      this.gestureMappings.set(gesture, {
+        action,
         params: params || {},
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
       this.saveGestureMappings();
       res.json({ success: true });
@@ -1116,7 +1115,7 @@ class GestureRecognitionMCPServer {
       };
 
       // Log camera frame received
-      console.log(`Camera frame received with gesture: ${gesture || 'none'}`);
+      console.log(`Camera frame received with gesture: ${gesture || "none"}`);
 
       res.json({ success: true });
     });
@@ -1176,7 +1175,6 @@ class GestureRecognitionMCPServer {
 
     this.httpServer = app.listen(3001, () => {
       console.log("HTTP server running on port 3001");
-
     });
   }
 

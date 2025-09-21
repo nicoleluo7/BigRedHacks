@@ -25,5 +25,12 @@
     "action": "system_volume_down",
     "params": {},
     "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  "four_fingers": {
+    "action": "open_tab",
+    "params": {
+      "url": "https://tysonyoshikawa.com/"
+    },
+    "updatedAt": "2025-09-20T23:06:00.785Z"
   }
 }

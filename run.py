@@ -227,6 +227,8 @@ class GestureRecognitionApp:
             logger.info(f"🤚 Gesture detected: {detected_gesture}")
 
             # Check for middle finger gesture to quit
+
+            
             if detected_gesture == "middle_finger":
                 if not self.showing_exit_message:
                     logger.info(
@@ -240,7 +242,13 @@ class GestureRecognitionApp:
                     self.showing_exit_message = True
                     self.exit_message_start_time = current_time
                     self.exit_initiated = True  # Prevent any further actions
+                logger.info("Middle finger gesture detected - closing application")
+                try:
+                    requests.post("http://localhost:3001/api/python-status", json={"status": "stopped"})
+                except Exception as e:
+                    logger.warning(f"Could not notify backend to stop Python: {e}")
                 return True  # Continue processing to show the message
+                
 
             # Check for call sign gesture to pause/unpause camera
             if detected_gesture == "call_sign":
