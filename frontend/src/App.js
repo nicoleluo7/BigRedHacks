@@ -37,23 +37,33 @@ function Navigation() {
   ];
 
   return (
-    <nav 
+    <nav
       className="shadow-subtle border-b transition-all duration-300"
       style={{
         background: currentThemeData.navGradient,
         borderColor: currentThemeData.border,
-        boxShadow: currentThemeData.shadow
+        boxShadow: currentThemeData.shadow,
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <h1 
-                className="text-xl font-semibold text-white"
-                style={{ color: currentTheme === 'cornell' ? '#ffffff' : currentThemeData.text }}
+            <div className="flex items-center space-x-3">
+              <img
+                src="logowbackground.png"
+                alt="Logo"
+                className="h-10 w-10 rounded-lg shadow-md object-cover"
+              />
+              <h1
+                className="text-2xl font-bold tracking-tight"
+                style={{
+                  color:
+                    currentTheme === "cornell"
+                      ? "#ffffff"
+                      : currentThemeData.text,
+                }}
               >
-                Gesture Control System
+                HandsFree
               </h1>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -66,8 +76,8 @@ function Navigation() {
                     to={item.href}
                     className="inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200"
                     style={{
-                      color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
-                      borderBottom: isActive ? '2px solid #ffffff' : 'none'
+                      color: isActive ? "#ffffff" : "rgba(255, 255, 255, 0.8)",
+                      borderBottom: isActive ? "2px solid #ffffff" : "none",
                     }}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -86,7 +96,11 @@ function Navigation() {
               className="p-2 text-white/80 hover:text-white transition-colors duration-200"
               title="Toggle between light and dark mode"
             >
-              {currentTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {currentTheme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
             </button>
             <ConnectionStatus />
           </div>
@@ -109,9 +123,9 @@ function Navigation() {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="sm:hidden backdrop-blur-md border-t border-white/20"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+          style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
         >
           <div className="pt-2 pb-3 space-y-1">
             {navigation.map((item) => {
@@ -123,8 +137,10 @@ function Navigation() {
                   to={item.href}
                   className="block pl-3 pr-4 py-3 text-base font-medium transition-colors duration-200"
                   style={{
-                    color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
-                    backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                    color: isActive ? "#ffffff" : "rgba(255, 255, 255, 0.8)",
+                    backgroundColor: isActive
+                      ? "rgba(255, 255, 255, 0.1)"
+                      : "transparent",
                   }}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -159,19 +175,22 @@ function ConnectionStatus() {
   }, []);
 
   return (
-    <div 
+    <div
       className="flex items-center space-x-2 backdrop-blur-sm rounded-lg px-3 py-2"
-      style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+      style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
     >
       {isConnected ? (
         <Wifi className="w-5 h-5 text-white" />
       ) : (
-        <WifiOff className="w-5 h-5" style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
+        <WifiOff
+          className="w-5 h-5"
+          style={{ color: "rgba(255, 255, 255, 0.6)" }}
+        />
       )}
       <span
         className="text-sm font-medium"
-        style={{ 
-          color: isConnected ? '#ffffff' : 'rgba(255, 255, 255, 0.6)' 
+        style={{
+          color: isConnected ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
         }}
       >
         {isConnected ? "Connected" : "Disconnected"}
@@ -216,7 +235,7 @@ function App() {
 
   return (
     <Router>
-      <div 
+      <div
         className="min-h-screen transition-all duration-300"
         style={{ backgroundColor: currentThemeData.background }}
       >
