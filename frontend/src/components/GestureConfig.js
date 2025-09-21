@@ -72,23 +72,23 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
       pointing: "👆",
       pointing_up: "☝️",
       pointing_right: "👉",
+      rock: "🤘",
       rock_sign: "🤘",
       rock_on: "🤘",
-      rock: "🤘",
-      ok_sign: "👌",
       ok: "👌",
+      ok_sign: "👌",
       call_sign: "🤙",
       call: "🤙",
       hang_loose: "🤙",
       middle_finger: "🖕",
-      ring_finger: "🤏",
+      ring_finger: "💍",
       pinky: "🤙",
-      three_fingers: "🤟",
+      three_fingers: "3️⃣",
       three_fingers_v2: "🤟",
-      three_fingers_serbian_style: "🤟",
-      two_fingers_ir: "✌️",
-      two_fingers_mr: "✌️",
-      four_fingers: "🖖",
+      three_fingers_serbian_style: "🇷🇸",
+      two_fingers_ir: "2️⃣",
+      two_fingers_mr: "2️⃣",
+      four_fingers: "4️⃣",
       l_shape: "🤏",
       pinch: "🤏",
       spock: "🖖",
@@ -218,33 +218,33 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div 
+      <div
         className="rounded-xl p-6 relative overflow-hidden"
         style={{
           background: currentThemeData.accentGradient,
           boxShadow: currentThemeData.shadow,
           borderColor: currentThemeData.border,
-          borderWidth: '1px',
-          borderStyle: 'solid'
+          borderWidth: "1px",
+          borderStyle: "solid",
         }}
       >
         {/* Animated background elements */}
-        <div 
+        <div
           className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-30 animate-float"
           style={{ background: currentThemeData.gradient }}
         ></div>
-        <div 
-          className="absolute bottom-0 left-0 w-16 h-16 rounded-full opacity-30 animate-float" 
+        <div
+          className="absolute bottom-0 left-0 w-16 h-16 rounded-full opacity-30 animate-float"
           style={{
             background: currentThemeData.gradient,
-            animationDelay: '1s'
+            animationDelay: "1s",
           }}
         ></div>
-        
+
         <div className="flex items-center justify-between relative z-10">
           <div>
             <h1 className="text-2xl font-bold text-white drop-shadow-lg">
-              Gesture Configuration
+              Configure Your Gestures{" "}
             </h1>
             <p className="text-white/90 mt-1">
               Configure which actions are triggered by each gesture
@@ -416,53 +416,57 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(gestureMappings).map(([gesture, mapping], index) => (
-              <div
-                key={gesture}
-                className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105 animate-slide-up"
-                style={{animationDelay: `${index * 0.1}s`}}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3 flex-1">
-                    <div className="text-2xl animate-bounce-slow">{getGestureIcon(gesture)}</div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 capitalize">
-                        {gesture.replace("_", " ")}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {mapping?.action
-                          ? getActionDescription(mapping.action)
-                          : "Not mapped"}
-                      </p>
-                      {mapping?.params &&
-                        Object.keys(mapping.params).length > 0 && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            {Object.entries(mapping.params)
-                              .map(([key, value]) => `${key}: ${value}`)
-                              .join(", ")}
-                          </p>
-                        )}
+            {Object.entries(gestureMappings).map(
+              ([gesture, mapping], index) => (
+                <div
+                  key={gesture}
+                  className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105 animate-slide-up"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3 flex-1">
+                      <div className="text-2xl animate-bounce-slow">
+                        {getGestureIcon(gesture)}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 capitalize">
+                          {gesture.replace("_", " ")}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {mapping?.action
+                            ? getActionDescription(mapping.action)
+                            : "Not mapped"}
+                        </p>
+                        {mapping?.params &&
+                          Object.keys(mapping.params).length > 0 && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {Object.entries(mapping.params)
+                                .map(([key, value]) => `${key}: ${value}`)
+                                .join(", ")}
+                            </p>
+                          )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => handleEdit(gesture, mapping)}
+                        className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-300"
+                        title="Edit mapping"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(gesture)}
+                        className="p-2 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-all duration-300"
+                        title="Delete mapping"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <button
-                      onClick={() => handleEdit(gesture, mapping)}
-                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-300"
-                      title="Edit mapping"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(gesture)}
-                      className="p-2 text-gray-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-all duration-300"
-                      title="Delete mapping"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         )}
       </div>
@@ -483,9 +487,11 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
               <div
                 key={gesture}
                 className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg p-3 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 animate-slide-up"
-                style={{animationDelay: `${index * 0.05}s`}}
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <div className="text-2xl mb-1 animate-bounce-slow">{getGestureIcon(gesture)}</div>
+                <div className="text-2xl mb-1 animate-bounce-slow">
+                  {getGestureIcon(gesture)}
+                </div>
                 <div className="text-sm text-gray-700 capitalize">
                   {gesture.replace("_", " ")}
                 </div>

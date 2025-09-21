@@ -64,23 +64,23 @@ function Dashboard({
       pointing: "👆",
       pointing_up: "☝️",
       pointing_right: "👉",
+      rock: "🤘",
       rock_sign: "🤘",
       rock_on: "🤘",
-      rock: "🤘",
-      ok_sign: "👌",
       ok: "👌",
+      ok_sign: "👌",
       call_sign: "🤙",
       call: "🤙",
       hang_loose: "🤙",
       middle_finger: "🖕",
-      ring_finger: "🤏",
+      ring_finger: "💍",
       pinky: "🤙",
-      three_fingers: "🤟",
+      three_fingers: "3️⃣",
       three_fingers_v2: "🤟",
-      three_fingers_serbian_style: "🤟",
-      two_fingers_ir: "✌️",
-      two_fingers_mr: "✌️",
-      four_fingers: "🖖",
+      three_fingers_serbian_style: "🇷🇸",
+      two_fingers_ir: "2️⃣",
+      two_fingers_mr: "2️⃣",
+      four_fingers: "4️⃣",
       l_shape: "🤏",
       pinch: "🤏",
       spock: "🖖",
@@ -124,7 +124,7 @@ function Dashboard({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-white dark:text-dark-100">
-              Gesture Recognition Dashboard
+              HandsFree Dashboard
             </h1>
             <p className="text-white/90 dark:text-dark-300 mt-1">
               Monitor and control your gesture recognition system
@@ -153,34 +153,34 @@ function Dashboard({
 
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div 
+        <div
           className="rounded-lg p-6 hover:shadow-lg transition-all duration-200"
           style={{
             backgroundColor: currentThemeData.cardBg,
             borderColor: currentThemeData.border,
-            borderWidth: '1px',
-            borderStyle: 'solid',
-            boxShadow: currentThemeData.shadow
+            borderWidth: "1px",
+            borderStyle: "solid",
+            boxShadow: currentThemeData.shadow,
           }}
         >
           <div className="flex items-center">
-            <div 
+            <div
               className="p-2 rounded-lg"
               style={{ backgroundColor: `${currentThemeData.primary}20` }}
             >
-              <Activity 
-                className="w-8 h-8" 
+              <Activity
+                className="w-8 h-8"
                 style={{ color: currentThemeData.primary }}
               />
             </div>
             <div className="ml-4">
-              <p 
+              <p
                 className="text-sm font-medium"
                 style={{ color: currentThemeData.textSecondary }}
               >
                 System Status
               </p>
-              <p 
+              <p
                 className="text-lg font-semibold"
                 style={{ color: currentThemeData.text }}
               >
@@ -190,34 +190,31 @@ function Dashboard({
           </div>
         </div>
 
-        <div 
+        <div
           className="rounded-lg p-6 hover:shadow-lg transition-all duration-200"
           style={{
             backgroundColor: currentThemeData.cardBg,
             borderColor: currentThemeData.border,
-            borderWidth: '1px',
-            borderStyle: 'solid',
-            boxShadow: currentThemeData.shadow
+            borderWidth: "1px",
+            borderStyle: "solid",
+            boxShadow: currentThemeData.shadow,
           }}
         >
           <div className="flex items-center">
-            <div 
+            <div
               className="p-2 rounded-lg"
-              style={{ backgroundColor: '#9333ea20' }}
+              style={{ backgroundColor: "#9333ea20" }}
             >
-              <Zap 
-                className="w-8 h-8" 
-                style={{ color: '#9333ea' }}
-              />
+              <Zap className="w-8 h-8" style={{ color: "#9333ea" }} />
             </div>
             <div className="ml-4">
-              <p 
+              <p
                 className="text-sm font-medium"
                 style={{ color: currentThemeData.textSecondary }}
               >
                 Gestures Detected
               </p>
-              <p 
+              <p
                 className="text-lg font-semibold"
                 style={{ color: currentThemeData.text }}
               >
@@ -227,34 +224,31 @@ function Dashboard({
           </div>
         </div>
 
-        <div 
+        <div
           className="rounded-lg p-6 hover:shadow-lg transition-all duration-200"
           style={{
             backgroundColor: currentThemeData.cardBg,
             borderColor: currentThemeData.border,
-            borderWidth: '1px',
-            borderStyle: 'solid',
-            boxShadow: currentThemeData.shadow
+            borderWidth: "1px",
+            borderStyle: "solid",
+            boxShadow: currentThemeData.shadow,
           }}
         >
           <div className="flex items-center">
-            <div 
+            <div
               className="p-2 rounded-lg"
-              style={{ backgroundColor: '#0284c720' }}
+              style={{ backgroundColor: "#0284c720" }}
             >
-              <Eye 
-                className="w-8 h-8" 
-                style={{ color: '#0284c7' }}
-              />
+              <Eye className="w-8 h-8" style={{ color: "#0284c7" }} />
             </div>
             <div className="ml-4">
-              <p 
+              <p
                 className="text-sm font-medium"
                 style={{ color: currentThemeData.textSecondary }}
               >
                 Mapped Gestures
               </p>
-              <p 
+              <p
                 className="text-lg font-semibold"
                 style={{ color: currentThemeData.text }}
               >
@@ -264,34 +258,31 @@ function Dashboard({
           </div>
         </div>
 
-        <div 
+        <div
           className="rounded-lg p-6 hover:shadow-lg transition-all duration-200"
           style={{
             backgroundColor: currentThemeData.cardBg,
             borderColor: currentThemeData.border,
-            borderWidth: '1px',
-            borderStyle: 'solid',
-            boxShadow: currentThemeData.shadow
+            borderWidth: "1px",
+            borderStyle: "solid",
+            boxShadow: currentThemeData.shadow,
           }}
         >
           <div className="flex items-center">
-            <div 
+            <div
               className="p-2 rounded-lg"
-              style={{ backgroundColor: '#30e8b020' }}
+              style={{ backgroundColor: "#30e8b020" }}
             >
-              <Clock 
-                className="w-8 h-8" 
-                style={{ color: '#30e8b0' }}
-              />
+              <Clock className="w-8 h-8" style={{ color: "#30e8b0" }} />
             </div>
             <div className="ml-4">
-              <p 
+              <p
                 className="text-sm font-medium"
                 style={{ color: currentThemeData.textSecondary }}
               >
                 Last Gesture
               </p>
-              <p 
+              <p
                 className="text-sm font-semibold"
                 style={{ color: currentThemeData.text }}
               >
@@ -326,7 +317,7 @@ function Dashboard({
                   )}
                 </div>
                 <span className="font-medium">
-                  {pythonRunning ? "Stop Python Script" : "Run Python Script"}
+                  {pythonRunning ? "Stop Python Script" : "Go hands free!"}
                 </span>
               </div>
               <span className="text-xl">→</span>
