@@ -65,13 +65,12 @@ class GestureRecognitionApp:
         self.camera = CameraManager(camera_index=camera_index)
         self.recognizer = GestureRecognizer()
         self.actions_client = ActionsClient()
-        
+
         # Initialize camera streamer for web frontend (only if web streaming is enabled)
         self.camera_streamer = None
         if web_stream:
             self.camera_streamer = initialize_camera_streamer(
-                camera_index=camera_index,
-                server_url="http://localhost:3001"
+                camera_index=camera_index, server_url="http://localhost:3001"
             )
 
         # Statistics
@@ -89,9 +88,13 @@ class GestureRecognitionApp:
         self.active_gestures = {}  # Track currently active continuous gestures
         self.last_detected_gesture = None
         self.gesture_frames_count = 0
-        self.gesture_hold_threshold = 10  # Frames to hold before considering it continuous
+        self.gesture_hold_threshold = (
+            10  # Frames to hold before considering it continuous
+        )
         self.gesture_state_cooldown = {}  # Track cooldown for gesture state changes
-        self.gesture_state_cooldown_time = 0.2  # Seconds to wait before changing gesture state
+        self.gesture_state_cooldown_time = (
+            0.3  # Seconds to wait before changing gesture state
+        )
 
         # Exit message tracking
         self.showing_exit_message = False
@@ -201,7 +204,7 @@ class GestureRecognitionApp:
 
         # Handle gesture state changes for continuous gestures
         gesture_state = self._determine_gesture_state(detected_gesture)
-        
+
         # Handle detected gesture
         if detected_gesture:
             # Skip all actions if exit has been initiated
@@ -215,7 +218,6 @@ class GestureRecognitionApp:
 
             # Check for middle finger gesture to quit
 
-            
             if detected_gesture == "middle_finger":
                 if not self.showing_exit_message:
                     logger.info(
@@ -231,14 +233,16 @@ class GestureRecognitionApp:
                     self.exit_initiated = True  # Prevent any further actions
                 logger.info("Middle finger gesture detected - closing application")
                 try:
-                    requests.post("http://localhost:3001/api/python-status", json={"status": "stopped"})
+                    requests.post(
+                        "http://localhost:3001/api/python-status",
+                        json={"status": "stopped"},
+                    )
                 except Exception as e:
                     logger.warning(f"Could not notify backend to stop Python: {e}")
                 return True  # Continue processing to show the message
-                
 
-            # Check for call sign gesture to pause/unpause camera
-            if detected_gesture == "call_sign":
+            # Check for call gesture to pause/unpause camera
+            if detected_gesture == "call":
                 self.camera_paused = not self.camera_paused
                 if self.camera_paused:
                     logger.info("📹 Camera paused - actions disabled")
@@ -258,17 +262,23 @@ class GestureRecognitionApp:
                 # New continuous gesture detected
                 if detected_gesture != self.last_detected_gesture:
                     # Stop any previous continuous gesture
-                    if self.last_detected_gesture and self.last_detected_gesture in self.active_gestures:
+                    if (
+                        self.last_detected_gesture
+                        and self.last_detected_gesture in self.active_gestures
+                    ):
                         self._stop_continuous_gesture(self.last_detected_gesture)
-                
+
                 # Start new continuous gesture
                 self._start_continuous_gesture(detected_gesture)
-                
+
             elif gesture_state == "ended":
                 # Gesture no longer detected
-                if self.last_detected_gesture and self.last_detected_gesture in self.active_gestures:
+                if (
+                    self.last_detected_gesture
+                    and self.last_detected_gesture in self.active_gestures
+                ):
                     self._stop_continuous_gesture(self.last_detected_gesture)
-                    
+
             elif gesture_state == "detected":
                 # Regular single-action gesture (not continuous)
                 self._handle_single_gesture(detected_gesture)
@@ -278,20 +288,28 @@ class GestureRecognitionApp:
 
             # Send to action server (non-blocking)
             threading.Thread(
-                target=self._send_gesture_async, args=(mapped_gesture, gesture_state), daemon=True
+                target=self._send_gesture_async,
+                args=(mapped_gesture, gesture_state),
+                daemon=True,
             ).start()
-        
+
         # Handle case where no gesture is detected but we need to end a continuous gesture
-        elif gesture_state == "ended" and self.last_detected_gesture and self.last_detected_gesture in self.active_gestures:
+        elif (
+            gesture_state == "ended"
+            and self.last_detected_gesture
+            and self.last_detected_gesture in self.active_gestures
+        ):
             # Map gesture name for action server
             mapped_gesture = map_gesture_name(self.last_detected_gesture)
-            
+
             # Stop the continuous gesture
             self._stop_continuous_gesture(self.last_detected_gesture)
-            
+
             # Send "ended" state to action server (non-blocking)
             threading.Thread(
-                target=self._send_gesture_async, args=(mapped_gesture, gesture_state), daemon=True
+                target=self._send_gesture_async,
+                args=(mapped_gesture, gesture_state),
+                daemon=True,
             ).start()
 
         # Display frame if enabled (hide OpenCV window when streaming to web)
@@ -312,44 +330,68 @@ class GestureRecognitionApp:
     def _send_gesture_async(self, gesture: str, gesture_state: str = "detected"):
         """Send gesture to action server asynchronously."""
         try:
-            success = self.actions_client.send_gesture(gesture, gesture_state=gesture_state)
+            success = self.actions_client.send_gesture(
+                gesture, gesture_state=gesture_state
+            )
             if success:
-                logger.info(f"✅ Gesture '{gesture}' ({gesture_state}) sent to action server")
+                logger.info(
+                    f"✅ Gesture '{gesture}' ({gesture_state}) sent to action server"
+                )
             else:
-                logger.warning(f"❌ Failed to send gesture '{gesture}' ({gesture_state})")
+                logger.warning(
+                    f"❌ Failed to send gesture '{gesture}' ({gesture_state})"
+                )
         except Exception as e:
             logger.error(f"Error sending gesture '{gesture}' ({gesture_state}): {e}")
 
     def _determine_gesture_state(self, detected_gesture):
         """Determine the state of the detected gesture for continuous tracking."""
         import time
+
         current_time = time.time()
-        
+
         # Define which gestures should be treated as continuous
-        continuous_gestures = {"call", "peace", "thumbs_up", "thumbs_down"}
-        
-        logger.info(f"🔍 Determining gesture state for: '{detected_gesture}' (last: '{self.last_detected_gesture}', active: {list(self.active_gestures.keys())})")
-        logger.info(f"🔍 Gesture state debug - detected: '{detected_gesture}', last: '{self.last_detected_gesture}', in_continuous: {detected_gesture in continuous_gestures if detected_gesture else 'N/A'}")
-        
+        continuous_gestures = {"thumbs_up", "thumbs_down"}
+
+        logger.info(
+            f"🔍 Determining gesture state for: '{detected_gesture}' (last: '{self.last_detected_gesture}', active: {list(self.active_gestures.keys())})"
+        )
+        logger.info(
+            f"🔍 Gesture state debug - detected: '{detected_gesture}', last: '{self.last_detected_gesture}', in_continuous: {detected_gesture in continuous_gestures if detected_gesture else 'N/A'}"
+        )
+
         if not detected_gesture:
             # No gesture detected - check if we need to end a continuous gesture
-            if self.last_detected_gesture and self.last_detected_gesture in continuous_gestures:
+            if (
+                self.last_detected_gesture
+                and self.last_detected_gesture in continuous_gestures
+            ):
                 # Add cooldown to prevent rapid ending of continuous gestures
                 gesture_key = f"{self.last_detected_gesture}_ended"
-                if gesture_key not in self.gesture_state_cooldown or current_time - self.gesture_state_cooldown[gesture_key] > self.gesture_state_cooldown_time:
-                    logger.info(f"🔄 No gesture detected, ending continuous gesture: {self.last_detected_gesture}")
+                if (
+                    gesture_key not in self.gesture_state_cooldown
+                    or current_time - self.gesture_state_cooldown[gesture_key]
+                    > self.gesture_state_cooldown_time
+                ):
+                    logger.info(
+                        f"🔄 No gesture detected, ending continuous gesture: {self.last_detected_gesture}"
+                    )
                     self.gesture_state_cooldown[gesture_key] = current_time
                     return "ended"
                 else:
-                    logger.info(f"⏳ Cooldown active for ending gesture: {self.last_detected_gesture}")
+                    logger.info(
+                        f"⏳ Cooldown active for ending gesture: {self.last_detected_gesture}"
+                    )
                     return None
             return None
-            
+
         # Check if this is a continuous gesture
         if detected_gesture in continuous_gestures:
             if detected_gesture in self.active_gestures:
                 # Continuing to hold the same continuous gesture
-                logger.info(f"⏸️ Continuing to hold continuous gesture: {detected_gesture}")
+                logger.info(
+                    f"⏸️ Continuing to hold continuous gesture: {detected_gesture}"
+                )
                 return "held"
             elif detected_gesture != self.last_detected_gesture:
                 # New continuous gesture detected
@@ -357,19 +399,18 @@ class GestureRecognitionApp:
                 return "started"
             else:
                 # Same gesture detected but not in active_gestures - treat as started
-                logger.info(f"🎬 Same continuous gesture detected again: {detected_gesture}")
+                logger.info(
+                    f"🎬 Same continuous gesture detected again: {detected_gesture}"
+                )
                 return "started"
-        
+
         # Regular single-action gesture
         logger.info(f"👆 Regular single-action gesture: {detected_gesture}")
         return "detected"
 
     def _start_continuous_gesture(self, gesture: str):
         """Start tracking a continuous gesture."""
-        self.active_gestures[gesture] = {
-            "start_time": time.time(),
-            "frames_held": 0
-        }
+        self.active_gestures[gesture] = {"start_time": time.time(), "frames_held": 0}
         self.last_detected_gesture = gesture
         logger.info(f"🔄 Started continuous gesture: {gesture}")
 
@@ -378,11 +419,13 @@ class GestureRecognitionApp:
         if gesture in self.active_gestures:
             duration = time.time() - self.active_gestures[gesture]["start_time"]
             del self.active_gestures[gesture]
-            logger.info(f"⏹️ Stopped continuous gesture: {gesture} (held for {duration:.1f}s)")
-        
+            logger.info(
+                f"⏹️ Stopped continuous gesture: {gesture} (held for {duration:.1f}s)"
+            )
+
         # Track when gesture ended for potential restart detection
         self.last_gesture_end_time = time.time()
-        
+
         # Clear last detected gesture if it's the same as the one we're stopping
         if self.last_detected_gesture == gesture:
             self.last_detected_gesture = None
@@ -395,11 +438,9 @@ class GestureRecognitionApp:
         if gesture in self.last_gesture_time:
             time_since_last = current_time - self.last_gesture_time[gesture]
 
-            # Use longer cooldown for call_sign, normal cooldown for others
+            # Use longer cooldown for call, normal cooldown for others
             cooldown_time = (
-                self.call_sign_cooldown
-                if gesture == "call_sign"
-                else self.gesture_cooldown
+                self.call_sign_cooldown if gesture == "call" else self.gesture_cooldown
             )
 
             if time_since_last < cooldown_time:
@@ -452,7 +493,7 @@ class GestureRecognitionApp:
             "Palm→None",
             "Thumbs→None",
             "Peace→Reels",
-            "CallSign→Pause/Resume",
+            "Call→Pause/Resume",
             "Point→NextSong",
             "LShape→LinkedIn",
             "Rock→Spotify",

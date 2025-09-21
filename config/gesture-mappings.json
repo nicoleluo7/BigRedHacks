@@ -26,16 +26,6 @@
     "params": {},
     "updatedAt": "2025-09-20T23:00:00.000Z"
   },
-  "call": {
-    "action": "spotify_previous",
-    "params": {},
-    "updatedAt": "2025-09-20T23:00:00.000Z"
-  },
-  "peace": {
-    "action": "screenshot",
-    "params": {},
-    "updatedAt": "2025-09-20T23:00:00.000Z"
-  },
   "open_palm": {
     "action": "notification",
     "params": {
@@ -43,12 +33,21 @@
     },
     "updatedAt": "2025-09-20T22:52:46.562Z"
   },
-  "four_fingers": {
+  "ring_finger": {
+    "action": "close_tab",
+    "params": {},
+    "updatedAt": "2025-09-21T02:32:18.122Z"
+  },
+  "peace": {
     "action": "open_tab",
     "params": {
-      "url": "https://tysonyoshikawa.com/"
+      "url": "https://www.instagram.com/bigredhacks/"
     },
-    "updatedAt": "2025-09-20T23:06:00.785Z"
+    "updatedAt": "2025-09-21T02:34:47.129Z"
+  },
+  "four_fingers": {
+    "action": "spotify_previous",
+    "params": {},
+    "updatedAt": "2025-09-21T02:56:51.937Z"
   }
 }
-

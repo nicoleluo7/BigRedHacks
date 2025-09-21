@@ -59,17 +59,17 @@ class GestureRecognizer:
         self.last_gesture = None
         self.last_gesture_time = 0
         self.gesture_cooldown = 3.0  # Seconds between same gesture detections
-        
+
         # Continuous gestures that should bypass cooldown
-        self.continuous_gestures = {"thumbs_up", "thumbs_down", "call", "peace"}
-        
+        self.continuous_gestures = {"thumbs_up", "thumbs_down"}
+
         # Gesture smoothing to prevent rapid switching
         self.gesture_history = []  # Track last few gestures
         self.gesture_history_size = 5  # Number of recent gestures to track
         self.similar_gestures = {
             "thumbs_up": ["fist", "thumbs_down"],
             "thumbs_down": ["fist", "thumbs_up"],
-            "fist": ["thumbs_up", "thumbs_down"]
+            "fist": ["thumbs_up", "thumbs_down"],
         }
 
         logger.info("GestureRecognizer initialized")
@@ -147,7 +147,9 @@ class GestureRecognizer:
                 thumb_pointing_down = thumb_tip[1] > thumb_mcp[1] + 0.02  # Below MCP
 
                 # Thumb is extended if it's pointing up OR down (not curled)
-                distance_check = tip_to_wrist > mcp_to_wrist * 1.4  # Less strict distance
+                distance_check = (
+                    tip_to_wrist > mcp_to_wrist * 1.4
+                )  # Less strict distance
                 return distance_check and (thumb_pointing_up or thumb_pointing_down)
             else:
                 # For other fingers: tip should be above PIP and PIP above MCP
@@ -436,40 +438,48 @@ class GestureRecognizer:
     def _smooth_gesture(self, detected_gesture):
         """Smooth gesture detection to prevent rapid switching between similar gestures."""
         import time
+
         current_time = time.time()
-        
+
         # Add current gesture to history
         if detected_gesture:
             self.gesture_history.append((detected_gesture, current_time))
-        
+
         # Keep only recent gestures
         cutoff_time = current_time - 1.0  # Only consider gestures from last 1 second
-        self.gesture_history = [(g, t) for g, t in self.gesture_history if t > cutoff_time]
-        
+        self.gesture_history = [
+            (g, t) for g, t in self.gesture_history if t > cutoff_time
+        ]
+
         # Limit history size
         if len(self.gesture_history) > self.gesture_history_size:
-            self.gesture_history = self.gesture_history[-self.gesture_history_size:]
-        
+            self.gesture_history = self.gesture_history[-self.gesture_history_size :]
+
         if not detected_gesture or len(self.gesture_history) < 3:
             return detected_gesture
-        
+
         # Check for rapid switching between similar gestures
         recent_gestures = [g for g, t in self.gesture_history[-3:]]  # Last 3 gestures
-        
+
         if len(recent_gestures) >= 3:
             # Check if we're rapidly switching between similar gestures
             current = recent_gestures[-1]
             previous = recent_gestures[-2]
             before_previous = recent_gestures[-3]
-            
+
             # If we're switching between similar gestures rapidly, keep the previous gesture
-            if (current != previous and 
-                current in self.similar_gestures.get(previous, []) and
-                previous in self.similar_gestures.get(before_previous, [])):
-                
-                logger.info(f"🔄 Smoothing gesture: {current} -> {previous} (preventing rapid switching)")
+
+            if (
+                current != previous
+                and current in self.similar_gestures.get(previous, [])
+                and previous in self.similar_gestures.get(before_previous, [])
+            ):
+
+                logger.info(
+                    f"🔄 Smoothing gesture: {current} -> {previous} (preventing rapid switching)"
+                )
                 return previous
-        
+
         return detected_gesture
 
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Optional[str]]:
