@@ -10,8 +10,10 @@ import {
   XCircle,
   AlertTriangle
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 function Statistics({ recentGestures }) {
+  const { currentThemeData } = useTheme();
   const [timeRange, setTimeRange] = useState('24h');
   const [stats, setStats] = useState({
     totalGestures: 0,
@@ -183,7 +185,16 @@ function Statistics({ recentGestures }) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-mint rounded-xl shadow-mint border border-mint-200 p-6 hover:shadow-glow-mint transition-all duration-300 animate-slide-up">
+        <div 
+          className="rounded-xl p-6 transition-all duration-300 animate-slide-up"
+          style={{
+            background: currentThemeData.accentGradient,
+            boxShadow: currentThemeData.shadow,
+            borderColor: currentThemeData.border,
+            borderWidth: '1px',
+            borderStyle: 'solid'
+          }}
+        >
           <div className="flex items-center">
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <Zap className="w-8 h-8 text-white" />
@@ -195,7 +206,17 @@ function Statistics({ recentGestures }) {
           </div>
         </div>
 
-        <div className="bg-gradient-teal rounded-xl shadow-teal border border-teal-200 p-6 hover:shadow-glow-mint transition-all duration-300 animate-slide-up" style={{animationDelay: '0.1s'}}>
+        <div 
+          className="rounded-xl p-6 transition-all duration-300 animate-slide-up" 
+          style={{
+            background: currentThemeData.gradient,
+            boxShadow: currentThemeData.shadow,
+            borderColor: currentThemeData.border,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            animationDelay: '0.1s'
+          }}
+        >
           <div className="flex items-center">
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <TrendingUp className="w-8 h-8 text-white" />
@@ -207,7 +228,17 @@ function Statistics({ recentGestures }) {
           </div>
         </div>
 
-        <div className="bg-gradient-sky rounded-xl shadow-sky border border-sky-200 p-6 hover:shadow-glow-mint transition-all duration-300 animate-slide-up" style={{animationDelay: '0.2s'}}>
+        <div 
+          className="rounded-xl p-6 transition-all duration-300 animate-slide-up" 
+          style={{
+            background: currentThemeData.headerGradient,
+            boxShadow: currentThemeData.shadow,
+            borderColor: currentThemeData.border,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            animationDelay: '0.2s'
+          }}
+        >
           <div className="flex items-center">
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <Activity className="w-8 h-8 text-white" />
@@ -219,7 +250,17 @@ function Statistics({ recentGestures }) {
           </div>
         </div>
 
-        <div className="bg-gradient-purple rounded-xl shadow-purple border border-purple-200 p-6 hover:shadow-glow-purple transition-all duration-300 animate-slide-up" style={{animationDelay: '0.3s'}}>
+        <div 
+          className="rounded-xl p-6 transition-all duration-300 animate-slide-up" 
+          style={{
+            background: currentThemeData.cardGradient,
+            boxShadow: currentThemeData.shadow,
+            borderColor: currentThemeData.border,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            animationDelay: '0.3s'
+          }}
+        >
           <div className="flex items-center">
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <BarChart3 className="w-8 h-8 text-white" />

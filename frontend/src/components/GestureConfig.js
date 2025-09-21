@@ -10,8 +10,10 @@ import {
   Settings,
 } from "lucide-react";
 import ApiService from "../services/ApiService";
+import { useTheme } from "../contexts/ThemeContext";
 
 function GestureConfig({ gestureMappings, onMappingUpdate }) {
+  const { currentThemeData } = useTheme();
   const [availableActions, setAvailableActions] = useState([]);
   const [editingGesture, setEditingGesture] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -203,10 +205,28 @@ function GestureConfig({ gestureMappings, onMappingUpdate }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-sky rounded-xl shadow-sky border border-sky-200 p-6 relative overflow-hidden">
+      <div 
+        className="rounded-xl p-6 relative overflow-hidden"
+        style={{
+          background: currentThemeData.accentGradient,
+          boxShadow: currentThemeData.shadow,
+          borderColor: currentThemeData.border,
+          borderWidth: '1px',
+          borderStyle: 'solid'
+        }}
+      >
         {/* Animated background elements */}
-        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-purple rounded-full opacity-30 animate-float"></div>
-        <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-mint rounded-full opacity-30 animate-float" style={{animationDelay: '1s'}}></div>
+        <div 
+          className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-30 animate-float"
+          style={{ background: currentThemeData.gradient }}
+        ></div>
+        <div 
+          className="absolute bottom-0 left-0 w-16 h-16 rounded-full opacity-30 animate-float" 
+          style={{
+            background: currentThemeData.gradient,
+            animationDelay: '1s'
+          }}
+        ></div>
         
         <div className="flex items-center justify-between relative z-10">
           <div>

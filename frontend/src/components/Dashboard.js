@@ -13,12 +13,14 @@ import {
   Loader2,
 } from "lucide-react";
 import ApiService from "../services/ApiService";
+import { useTheme } from "../contexts/ThemeContext";
 
 function Dashboard({
   gestureMappings = {},
   recentGestures = [],
   onGestureDetected,
 }) {
+  const { currentThemeData } = useTheme();
   const [isConnected, setIsConnected] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
   const [pythonRunning, setPythonRunning] = useState(false);
@@ -135,64 +137,148 @@ function Dashboard({
 
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-dark-800 rounded-lg shadow-subtle dark:shadow-dark border border-gray-200 dark:border-dark-700 p-6 hover:shadow-lg dark:hover:shadow-dark-lg transition-shadow duration-200">
+        <div 
+          className="rounded-lg p-6 hover:shadow-lg transition-all duration-200"
+          style={{
+            backgroundColor: currentThemeData.cardBg,
+            borderColor: currentThemeData.border,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            boxShadow: currentThemeData.shadow
+          }}
+        >
           <div className="flex items-center">
-            <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-              <Activity className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+            <div 
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: `${currentThemeData.primary}20` }}
+            >
+              <Activity 
+                className="w-8 h-8" 
+                style={{ color: currentThemeData.primary }}
+              />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-dark-400">
+              <p 
+                className="text-sm font-medium"
+                style={{ color: currentThemeData.textSecondary }}
+              >
                 System Status
               </p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-dark-100">
+              <p 
+                className="text-lg font-semibold"
+                style={{ color: currentThemeData.text }}
+              >
                 {isConnected ? "Active" : "Offline"}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-dark-800 rounded-lg shadow-subtle dark:shadow-dark border border-gray-200 dark:border-dark-700 p-6 hover:shadow-lg dark:hover:shadow-dark-lg transition-shadow duration-200">
+        <div 
+          className="rounded-lg p-6 hover:shadow-lg transition-all duration-200"
+          style={{
+            backgroundColor: currentThemeData.cardBg,
+            borderColor: currentThemeData.border,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            boxShadow: currentThemeData.shadow
+          }}
+        >
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Zap className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            <div 
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: '#9333ea20' }}
+            >
+              <Zap 
+                className="w-8 h-8" 
+                style={{ color: '#9333ea' }}
+              />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-dark-400">
+              <p 
+                className="text-sm font-medium"
+                style={{ color: currentThemeData.textSecondary }}
+              >
                 Gestures Detected
               </p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-dark-100">
+              <p 
+                className="text-lg font-semibold"
+                style={{ color: currentThemeData.text }}
+              >
                 {gestureCount}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-dark-800 rounded-lg shadow-subtle dark:shadow-dark border border-gray-200 dark:border-dark-700 p-6 hover:shadow-lg dark:hover:shadow-dark-lg transition-shadow duration-200">
+        <div 
+          className="rounded-lg p-6 hover:shadow-lg transition-all duration-200"
+          style={{
+            backgroundColor: currentThemeData.cardBg,
+            borderColor: currentThemeData.border,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            boxShadow: currentThemeData.shadow
+          }}
+        >
           <div className="flex items-center">
-            <div className="p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
-              <Eye className="w-8 h-8 text-sky-600 dark:text-sky-400" />
+            <div 
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: '#0284c720' }}
+            >
+              <Eye 
+                className="w-8 h-8" 
+                style={{ color: '#0284c7' }}
+              />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-dark-400">
+              <p 
+                className="text-sm font-medium"
+                style={{ color: currentThemeData.textSecondary }}
+              >
                 Mapped Gestures
               </p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-dark-100">
+              <p 
+                className="text-lg font-semibold"
+                style={{ color: currentThemeData.text }}
+              >
                 {mappedGestures}/{totalGestures}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-dark-800 rounded-lg shadow-subtle dark:shadow-dark border border-gray-200 dark:border-dark-700 p-6 hover:shadow-lg dark:hover:shadow-dark-lg transition-shadow duration-200">
+        <div 
+          className="rounded-lg p-6 hover:shadow-lg transition-all duration-200"
+          style={{
+            backgroundColor: currentThemeData.cardBg,
+            borderColor: currentThemeData.border,
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            boxShadow: currentThemeData.shadow
+          }}
+        >
           <div className="flex items-center">
-            <div className="p-2 bg-mint-100 dark:bg-mint-900/30 rounded-lg">
-              <Clock className="w-8 h-8 text-mint-600 dark:text-mint-400" />
+            <div 
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: '#30e8b020' }}
+            >
+              <Clock 
+                className="w-8 h-8" 
+                style={{ color: '#30e8b0' }}
+              />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-dark-400">
+              <p 
+                className="text-sm font-medium"
+                style={{ color: currentThemeData.textSecondary }}
+              >
                 Last Gesture
               </p>
-              <p className="text-sm font-semibold text-gray-900 dark:text-dark-100">
+              <p 
+                className="text-sm font-semibold"
+                style={{ color: currentThemeData.text }}
+              >
                 {lastGesture ? getGestureIcon(lastGesture.gesture) : "None"}
               </p>
             </div>

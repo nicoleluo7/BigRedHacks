@@ -57,6 +57,84 @@ module.exports = {
           800: '#6b21a8',
           900: '#581c87',
         },
+        // Cornell University colors
+        'cornell': {
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#d32f2f', // Cornell red
+          600: '#dc2626',
+          700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
+        },
+        // Ocean theme colors
+        'ocean': {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0284c7',
+          600: '#0369a1',
+          700: '#075985',
+          800: '#0c4a6e',
+          900: '#082f49',
+        },
+        // Forest theme colors
+        'forest': {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#059669',
+          600: '#047857',
+          700: '#065f46',
+          800: '#064e3b',
+          900: '#052e16',
+        },
+        // Sunset theme colors
+        'sunset': {
+          50: '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#ea580c',
+          600: '#c2410c',
+          700: '#9a3412',
+          800: '#7c2d12',
+          900: '#431407',
+        },
+        // Lavender theme colors
+        'lavender': {
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#9333ea',
+          600: '#7c3aed',
+          700: '#6b21a8',
+          800: '#581c87',
+          900: '#3b0764',
+        },
+        // Midnight theme colors
+        'midnight': {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
+        },
         // Semantic colors using your palette - more formal
         primary: {
           50: '#f0fdf9',
@@ -148,6 +226,13 @@ module.exports = {
         'gradient-formal': 'linear-gradient(135deg, #07363b 0%, #0d9488 100%)',
         'gradient-dark': 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
         'gradient-dark-card': 'linear-gradient(135deg, #334155 0%, #475569 100%)',
+        // New theme gradients
+        'gradient-cornell': 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)',
+        'gradient-ocean': 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+        'gradient-forest': 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+        'gradient-sunset': 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
+        'gradient-lavender': 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)',
+        'gradient-midnight': 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
       },
       boxShadow: {
         'mint': '0 4px 14px 0 rgba(48, 232, 176, 0.25)',
@@ -157,6 +242,13 @@ module.exports = {
         'dark': '0 4px 14px 0 rgba(0, 0, 0, 0.25)',
         'dark-lg': '0 10px 25px 0 rgba(0, 0, 0, 0.4)',
         'subtle': '0 2px 8px 0 rgba(0, 0, 0, 0.1)',
+        // New theme shadows
+        'cornell': '0 4px 14px 0 rgba(211, 47, 47, 0.25)',
+        'ocean': '0 4px 14px 0 rgba(2, 132, 199, 0.25)',
+        'forest': '0 4px 14px 0 rgba(5, 150, 105, 0.25)',
+        'sunset': '0 4px 14px 0 rgba(234, 88, 12, 0.25)',
+        'lavender': '0 4px 14px 0 rgba(147, 51, 234, 0.25)',
+        'midnight': '0 4px 14px 0 rgba(99, 102, 241, 0.25)',
       }
     },
   },

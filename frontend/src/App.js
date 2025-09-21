@@ -22,12 +22,13 @@ import {
 import Dashboard from "./components/Dashboard";
 import GestureConfig from "./components/GestureConfig";
 import Statistics from "./components/Statistics";
-import { DarkModeProvider, useDarkMode } from "./contexts/DarkModeContext";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
+import ThemeSelector from "./components/ThemeSelector";
 
 function Navigation() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { currentTheme, currentThemeData, toggleTheme } = useTheme();
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: Activity },
@@ -36,12 +37,22 @@ function Navigation() {
   ];
 
   return (
-    <nav className="bg-gradient-formal dark:bg-gradient-dark shadow-subtle dark:shadow-dark border-b border-primary-200 dark:border-dark-700">
+    <nav 
+      className="shadow-subtle border-b transition-all duration-300"
+      style={{
+        background: currentThemeData.navGradient,
+        borderColor: currentThemeData.border,
+        boxShadow: currentThemeData.shadow
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-semibold text-white dark:text-dark-100">
+              <h1 
+                className="text-xl font-semibold text-white"
+                style={{ color: currentTheme === 'cornell' ? '#ffffff' : currentThemeData.text }}
+              >
                 Gesture Control System
               </h1>
             </div>
@@ -53,11 +64,11 @@ function Navigation() {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-                      isActive
-                        ? "text-white dark:text-dark-100 border-b-2 border-white dark:border-dark-100"
-                        : "text-white/80 dark:text-dark-300 hover:text-white dark:hover:text-dark-100"
-                    }`}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200"
+                    style={{
+                      color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
+                      borderBottom: isActive ? '2px solid #ffffff' : 'none'
+                    }}
                   >
                     <Icon className="w-4 h-4 mr-2" />
                     {item.name}
@@ -67,14 +78,15 @@ function Navigation() {
             </div>
           </div>
 
-          {/* Dark Mode Toggle & Connection Status */}
+          {/* Theme Selector & Connection Status */}
           <div className="flex items-center space-x-4">
+            <ThemeSelector />
             <button
-              onClick={toggleDarkMode}
-              className="p-2 text-white/80 dark:text-dark-300 hover:text-white dark:hover:text-dark-100 transition-colors duration-200"
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+              onClick={toggleTheme}
+              className="p-2 text-white/80 hover:text-white transition-colors duration-200"
+              title="Toggle between light and dark mode"
             >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {currentTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <ConnectionStatus />
           </div>
@@ -83,7 +95,7 @@ function Navigation() {
           <div className="sm:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 text-white/80 dark:text-dark-300 hover:text-white dark:hover:text-dark-100 transition-colors duration-200"
+              className="inline-flex items-center justify-center p-2 text-white/80 hover:text-white transition-colors duration-200"
             >
               {isMobileMenuOpen ? (
                 <X className="block h-6 w-6" />
@@ -97,7 +109,10 @@ function Navigation() {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="sm:hidden bg-white/10 dark:bg-dark-800/90 backdrop-blur-md border-t border-white/20 dark:border-dark-700">
+        <div 
+          className="sm:hidden backdrop-blur-md border-t border-white/20"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+        >
           <div className="pt-2 pb-3 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -106,11 +121,11 @@ function Navigation() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`block pl-3 pr-4 py-3 text-base font-medium transition-colors duration-200 ${
-                    isActive
-                      ? "text-white dark:text-dark-100 bg-white/10 dark:bg-dark-700/50"
-                      : "text-white/80 dark:text-dark-300 hover:text-white dark:hover:text-dark-100"
-                  }`}
+                  className="block pl-3 pr-4 py-3 text-base font-medium transition-colors duration-200"
+                  style={{
+                    color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
+                    backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                  }}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <div className="flex items-center">
@@ -144,16 +159,20 @@ function ConnectionStatus() {
   }, []);
 
   return (
-    <div className="flex items-center space-x-2 bg-white/10 dark:bg-dark-700/50 backdrop-blur-sm rounded-lg px-3 py-2">
+    <div 
+      className="flex items-center space-x-2 backdrop-blur-sm rounded-lg px-3 py-2"
+      style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+    >
       {isConnected ? (
-        <Wifi className="w-5 h-5 text-white dark:text-dark-100" />
+        <Wifi className="w-5 h-5 text-white" />
       ) : (
-        <WifiOff className="w-5 h-5 text-white/60 dark:text-dark-400" />
+        <WifiOff className="w-5 h-5" style={{ color: 'rgba(255, 255, 255, 0.6)' }} />
       )}
       <span
-        className={`text-sm font-medium ${
-          isConnected ? "text-white dark:text-dark-100" : "text-white/60 dark:text-dark-400"
-        }`}
+        className="text-sm font-medium"
+        style={{ 
+          color: isConnected ? '#ffffff' : 'rgba(255, 255, 255, 0.6)' 
+        }}
       >
         {isConnected ? "Connected" : "Disconnected"}
       </span>
@@ -164,6 +183,7 @@ function ConnectionStatus() {
 function App() {
   const [gestureMappings, setGestureMappings] = useState({});
   const [recentGestures, setRecentGestures] = useState([]);
+  const { currentThemeData } = useTheme();
 
   useEffect(() => {
     fetch("/api/gestures")
@@ -196,7 +216,10 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-dark-900 transition-colors duration-300">
+      <div 
+        className="min-h-screen transition-all duration-300"
+        style={{ backgroundColor: currentThemeData.background }}
+      >
         <Navigation />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <Routes>
@@ -232,9 +255,9 @@ function App() {
 
 function AppWithProvider() {
   return (
-    <DarkModeProvider>
+    <ThemeProvider>
       <App />
-    </DarkModeProvider>
+    </ThemeProvider>
   );
 }
 

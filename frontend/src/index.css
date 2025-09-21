@@ -6,6 +6,37 @@
   html {
     font-family: 'Inter', system-ui, sans-serif;
   }
+  
+  /* Theme-specific styles */
+  .theme-cornell {
+    --theme-primary: #d32f2f;
+    --theme-secondary: #b71c1c;
+  }
+  
+  .theme-ocean {
+    --theme-primary: #0284c7;
+    --theme-secondary: #0369a1;
+  }
+  
+  .theme-forest {
+    --theme-primary: #059669;
+    --theme-secondary: #047857;
+  }
+  
+  .theme-sunset {
+    --theme-primary: #ea580c;
+    --theme-secondary: #c2410c;
+  }
+  
+  .theme-lavender {
+    --theme-primary: #9333ea;
+    --theme-secondary: #7c3aed;
+  }
+  
+  .theme-midnight {
+    --theme-primary: #6366f1;
+    --theme-secondary: #4f46e5;
+  }
 }
 
 @layer components {
