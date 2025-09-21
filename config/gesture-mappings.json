@@ -29,9 +29,9 @@
   "open_palm": {
     "action": "notification",
     "params": {
-      "message": "ihfiuahfasd"
+      "message": "Notification!"
     },
-    "updatedAt": "2025-09-20T22:52:46.562Z"
+    "updatedAt": "2025-09-21T04:26:34.945Z"
   },
   "ring_finger": {
     "action": "close_tab",
@@ -44,10 +44,5 @@
       "url": "https://www.instagram.com/bigredhacks/"
     },
     "updatedAt": "2025-09-21T02:34:47.129Z"
-  },
-  "four_fingers": {
-    "action": "spotify_previous",
-    "params": {},
-    "updatedAt": "2025-09-21T02:56:51.937Z"
   }
 }
