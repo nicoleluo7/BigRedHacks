@@ -59,6 +59,18 @@ class GestureRecognizer:
         self.last_gesture = None
         self.last_gesture_time = 0
         self.gesture_cooldown = 3.0  # Seconds between same gesture detections
+        
+        # Continuous gestures that should bypass cooldown
+        self.continuous_gestures = {"thumbs_up", "thumbs_down", "call", "peace"}
+        
+        # Gesture smoothing to prevent rapid switching
+        self.gesture_history = []  # Track last few gestures
+        self.gesture_history_size = 5  # Number of recent gestures to track
+        self.similar_gestures = {
+            "thumbs_up": ["fist", "thumbs_down"],
+            "thumbs_down": ["fist", "thumbs_up"],
+            "fist": ["thumbs_up", "thumbs_down"]
+        }
 
         logger.info("GestureRecognizer initialized")
 
@@ -126,20 +138,17 @@ class GestureRecognizer:
         def is_finger_extended(tip, pip, mcp, finger_name=""):
             """Check if finger is extended with more accuracy."""
             if finger_name == "thumb":
-                # For thumb: stricter detection to avoid false positives
+                # For thumb: detect extension in any direction (up or down)
                 tip_to_wrist = np.linalg.norm(tip - wrist)
                 mcp_to_wrist = np.linalg.norm(thumb_mcp - wrist)
 
-                # Also check if thumb is pointing upward (y-coordinate)
-                thumb_pointing_up = (
-                    thumb_tip[1] < thumb_mcp[1] - 0.02
-                )  # Thumb tip should be above MCP
+                # Check if thumb is pointing up OR down (not curled)
+                thumb_pointing_up = thumb_tip[1] < thumb_mcp[1] - 0.02  # Above MCP
+                thumb_pointing_down = thumb_tip[1] > thumb_mcp[1] + 0.02  # Below MCP
 
-                # Stricter thumb detection - needs distance AND upward pointing
-                distance_check = (
-                    tip_to_wrist > mcp_to_wrist * 1.6
-                )  # More strict distance
-                return distance_check and thumb_pointing_up
+                # Thumb is extended if it's pointing up OR down (not curled)
+                distance_check = tip_to_wrist > mcp_to_wrist * 1.4  # Less strict distance
+                return distance_check and (thumb_pointing_up or thumb_pointing_down)
             else:
                 # For other fingers: tip should be above PIP and PIP above MCP
                 return tip[1] < pip[1] < mcp[1]
@@ -176,19 +185,27 @@ class GestureRecognizer:
         if extended_count == 0:
             return "fist"
         elif extended_count == 1 and fingers_up[0]:
-            # Additional check for thumbs up - thumb must be clearly pointing up
-            # Check if thumb is significantly above other fingers
+            # Only thumb is extended - determine if it's thumbs up or thumbs down
+            # Check thumb position relative to wrist and other fingers
             other_fingers_y = [index_tip[1], middle_tip[1], ring_tip[1], pinky_tip[1]]
             avg_other_fingers_y = np.mean(other_fingers_y)
 
             # Thumb should be significantly above other fingers for thumbs up
-            thumb_clearly_up = thumb_tip[1] < avg_other_fingers_y - 0.05
+            thumb_clearly_up = thumb_tip[1] < avg_other_fingers_y - 0.03
+            # Thumb should be below other fingers for thumbs down
+            thumb_clearly_down = thumb_tip[1] > avg_other_fingers_y + 0.02
 
             if thumb_clearly_up:
                 return "thumbs_up"
+            elif thumb_clearly_down:
+                return "thumbs_down"
             else:
-                # If thumb is only slightly extended, it's probably a fist
-                return "fist"
+                # Check relative to wrist for additional thumbs down detection
+                if thumb_tip[1] > wrist[1] + 0.03:  # Thumb tip below wrist
+                    return "thumbs_down"
+                else:
+                    # If thumb is only slightly extended, it's probably a fist
+                    return "fist"
 
         # OPEN PALM: All fingers extended
         elif extended_count == 5:
@@ -416,6 +433,45 @@ class GestureRecognizer:
 
         return False
 
+    def _smooth_gesture(self, detected_gesture):
+        """Smooth gesture detection to prevent rapid switching between similar gestures."""
+        import time
+        current_time = time.time()
+        
+        # Add current gesture to history
+        if detected_gesture:
+            self.gesture_history.append((detected_gesture, current_time))
+        
+        # Keep only recent gestures
+        cutoff_time = current_time - 1.0  # Only consider gestures from last 1 second
+        self.gesture_history = [(g, t) for g, t in self.gesture_history if t > cutoff_time]
+        
+        # Limit history size
+        if len(self.gesture_history) > self.gesture_history_size:
+            self.gesture_history = self.gesture_history[-self.gesture_history_size:]
+        
+        if not detected_gesture or len(self.gesture_history) < 3:
+            return detected_gesture
+        
+        # Check for rapid switching between similar gestures
+        recent_gestures = [g for g, t in self.gesture_history[-3:]]  # Last 3 gestures
+        
+        if len(recent_gestures) >= 3:
+            # Check if we're rapidly switching between similar gestures
+            current = recent_gestures[-1]
+            previous = recent_gestures[-2]
+            before_previous = recent_gestures[-3]
+            
+            # If we're switching between similar gestures rapidly, keep the previous gesture
+            if (current != previous and 
+                current in self.similar_gestures.get(previous, []) and
+                previous in self.similar_gestures.get(before_previous, [])):
+                
+                logger.info(f"🔄 Smoothing gesture: {current} -> {previous} (preventing rapid switching)")
+                return previous
+        
+        return detected_gesture
+
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Optional[str]]:
         """
         Process a single frame for gesture recognition.
@@ -445,12 +501,15 @@ class GestureRecognizer:
                 gesture = self.classify_gesture(landmarks)
 
                 if gesture:
-                    # Apply cooldown to prevent spam
-                    if (
+                    # Apply cooldown to prevent spam, but allow continuous gestures to bypass cooldown
+                    is_continuous = gesture in self.continuous_gestures
+                    should_detect = (
                         gesture != self.last_gesture
                         or current_time - self.last_gesture_time > self.gesture_cooldown
-                    ):
+                        or is_continuous  # Continuous gestures bypass cooldown
+                    )
 
+                    if should_detect:
                         detected_gesture = gesture
                         self.last_gesture = gesture
                         self.last_gesture_time = current_time
@@ -523,7 +582,7 @@ class CameraManager:
     Manages webcam input for gesture recognition.
     """
 
-    def __init__(self, camera_index: int = 1, width: int = 640, height: int = 480):
+    def __init__(self, camera_index: int = 0, width: int = 640, height: int = 480):
         """
         Initialize camera manager.
 

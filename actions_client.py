@@ -49,13 +49,14 @@ class ActionsClient:
         )
 
 
-    def send_gesture(self, gesture: str, timestamp: Optional[str] = None) -> bool:
+    def send_gesture(self, gesture: str, timestamp: Optional[str] = None, gesture_state: str = "detected") -> bool:
         """
         Send a detected gesture to the action server.
 
         Args:
             gesture: Name of the detected gesture
             timestamp: ISO timestamp of detection (auto-generated if None)
+            gesture_state: State of the gesture - 'detected', 'started', 'ended'
 
         Returns:
             True if sent successfully, False otherwise
@@ -69,7 +70,7 @@ class ActionsClient:
             timestamp = datetime.now().isoformat()
 
         # Prepare message
-        message = {"gesture": gesture, "timestamp": timestamp}
+        message = {"gesture": gesture, "timestamp": timestamp, "gestureState": gesture_state}
 
         self.gestures_sent += 1
 
@@ -198,7 +199,7 @@ GESTURE_MAPPINGS = {
     "thumbs_down": "thumbs_down",
     "peace": "peace",
     "victory": "victory",
-    "call_sign": "call_sign",
+    "call_sig   n": "call_sign",
     "call": "call",
     "hang_loose": "hang_loose",
     "pointing": "pointing",

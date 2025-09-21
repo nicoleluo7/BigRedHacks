@@ -39,6 +39,16 @@ class GestureRecognitionMCPServer {
     this.latestFrame = null;
     this.configPath = join(__dirname, "..", "config", "gesture-mappings.json");
 
+    // Continuous gesture tracking
+    this.activeGestures = new Map(); // Track currently held gestures
+    this.continuousVolumeInterval = null; // Interval for continuous volume adjustments
+    this.volumeAdjustmentRate = 200; // ms between volume adjustments
+    this.volumeStepSize = 5; // Volume change per adjustment
+    
+    // Debouncing for continuous gestures
+    this.lastContinuousAction = null;
+    this.continuousActionCooldown = 500; // 500ms cooldown between continuous actions
+
     this.setupMCPHandlers();
     this.loadGestureMappings();
     this.setupHttpServer();
@@ -223,12 +233,14 @@ class GestureRecognitionMCPServer {
   }
 
   async performAction(args) {
-    const { gesture, timestamp } = args;
+    const { gesture, timestamp, gestureState = 'detected' } = args;
 
-    console.log(`Performing action for gesture: ${gesture}`);
+    console.log(`Performing action for gesture: ${gesture} (state: ${gestureState})`);
+    console.log(`Available mappings:`, Array.from(this.gestureMappings.keys()));
 
     const mapping = this.gestureMappings.get(gesture);
     if (!mapping) {
+      console.log(`No mapping found for gesture: ${gesture}`);
       return {
         content: [
           {
@@ -239,17 +251,78 @@ class GestureRecognitionMCPServer {
       };
     }
 
+    console.log(`Found mapping for ${gesture}:`, mapping);
+
     try {
-      const result = await this.executeSystemAction(
-        mapping.action,
-        mapping.params || {}
-      );
+      let result;
+      
+      // Handle continuous volume gestures differently
+      console.log(`🎯 Processing gesture: ${gesture}, state: ${gestureState}, action: ${mapping.action}`);
+      
+      if ((gestureState === 'started' || gestureState === 'held') && (mapping.action === 'continuous_volume_up' || mapping.action === 'continuous_volume_down')) {
+        // Start or continue continuous volume adjustment
+        if (gestureState === 'started') {
+          // Check debouncing - prevent rapid start/stop
+          const now = Date.now();
+          const lastActionKey = `${gesture}_${mapping.action}`;
+          
+          if (this.lastContinuousAction && 
+              this.lastContinuousAction.key === lastActionKey && 
+              now - this.lastContinuousAction.time < this.continuousActionCooldown) {
+            console.log(`⏳ Debouncing continuous action: ${mapping.action} (too soon after last action)`);
+            result = "Debounced - too soon after last action";
+          } else {
+            console.log(`🚀 Starting continuous volume action: ${mapping.action}`);
+            result = await this.executeSystemAction(mapping.action, mapping.params || {});
+            this.activeGestures.set(gesture, { startTime: Date.now(), action: mapping.action });
+            this.lastContinuousAction = { key: lastActionKey, time: now };
+            console.log(`✅ Continuous volume started for gesture: ${gesture}`);
+          }
+        } else {
+          // Gesture is being held - continue the action (no-op, interval is already running)
+          console.log(`⏸️ Continuing continuous volume action: ${mapping.action}`);
+          result = "Continuing continuous volume adjustment";
+        }
+      } else if (gestureState === 'ended' && this.activeGestures.has(gesture)) {
+        // Stop continuous volume adjustment - add debouncing
+        const now = Date.now();
+        const stopActionKey = `stop_${gesture}`;
+        
+        if (this.lastContinuousAction && 
+            this.lastContinuousAction.key === stopActionKey && 
+            now - this.lastContinuousAction.time < this.continuousActionCooldown) {
+          console.log(`⏳ Debouncing stop action for: ${gesture} (too soon after last stop)`);
+          result = "Debounced stop - too soon after last stop";
+        } else {
+          console.log(`⏹️ Stopping continuous volume for gesture: ${gesture}`);
+          this.activeGestures.delete(gesture);
+          result = await this.executeSystemAction('stop_continuous_volume', {});
+          this.lastContinuousAction = { key: stopActionKey, time: now };
+          console.log(`✅ Continuous volume stopped for gesture: ${gesture}`);
+        }
+      } else if (gestureState === 'detected') {
+        // Regular single-action execution
+        console.log(`👆 Executing single action: ${mapping.action}`);
+        result = await this.executeSystemAction(mapping.action, mapping.params || {});
+      } else {
+        // Gesture is being held but not a continuous action
+        console.log(`⏸️ Gesture ${gesture} is being held but not configured for continuous action`);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Gesture ${gesture} is being held but not configured for continuous action`,
+            },
+          ],
+        };
+      }
 
       // Broadcast the gesture detection to all connected clients
       await this.broadcastGesture({
         gesture,
         timestamp,
         action: mapping.action,
+        gestureState,
         success: true,
         result,
       });
@@ -258,7 +331,7 @@ class GestureRecognitionMCPServer {
         content: [
           {
             type: "text",
-            text: `Successfully executed ${mapping.action} for gesture ${gesture}: ${result}`,
+            text: `Successfully executed ${mapping.action} for gesture ${gesture} (${gestureState}): ${result}`,
           },
         ],
       };
@@ -269,6 +342,7 @@ class GestureRecognitionMCPServer {
         gesture,
         timestamp,
         action: mapping.action,
+        gestureState,
         success: false,
         error: error.message,
       });
@@ -344,6 +418,15 @@ class GestureRecognitionMCPServer {
 
       case "close_tab":
         return await this.closeLastTab();
+
+      case "continuous_volume_up":
+        return await this.startContinuousVolumeUp();
+
+      case "continuous_volume_down":
+        return await this.startContinuousVolumeDown();
+
+      case "stop_continuous_volume":
+        return await this.stopContinuousVolume();
 
       default:
         throw new Error(`Unknown action: ${action}`);
@@ -422,6 +505,7 @@ class GestureRecognitionMCPServer {
   }
 
   async adjustVolume(delta) {
+    console.log(`🔧 Adjusting volume by ${delta}...`);
     return new Promise((resolve, reject) => {
       let command;
 
@@ -434,10 +518,13 @@ class GestureRecognitionMCPServer {
         command = `amixer set Master ${delta > 0 ? "+" : ""}${delta}%`;
       }
 
+      console.log(`🔧 Executing volume command: ${command}`);
       exec(command, (error, stdout, stderr) => {
         if (error) {
+          console.error(`❌ Volume adjustment failed: ${error.message}`);
           reject(error);
         } else {
+          console.log(`✅ Volume adjusted by ${delta} successfully`);
           resolve(`Adjusted volume by ${delta}`);
         }
       });
@@ -814,6 +901,59 @@ class GestureRecognitionMCPServer {
     }
   }
 
+  async startContinuousVolumeUp() {
+    console.log("🎵 Starting continuous volume up...");
+    if (this.continuousVolumeInterval) {
+      console.log("⚠️ Continuous volume interval already active, stopping first");
+      this.stopContinuousVolume();
+    }
+
+    this.continuousVolumeInterval = setInterval(async () => {
+      try {
+        await this.adjustVolume(this.volumeStepSize);
+        console.log(`🔊 Continuous volume up: +${this.volumeStepSize}`);
+      } catch (error) {
+        console.error("Error in continuous volume up:", error);
+        this.stopContinuousVolume();
+      }
+    }, this.volumeAdjustmentRate);
+
+    console.log(`✅ Continuous volume up started (interval: ${this.volumeAdjustmentRate}ms, step: ${this.volumeStepSize})`);
+    return "Started continuous volume up";
+  }
+
+  async startContinuousVolumeDown() {
+    console.log("🎵 Starting continuous volume down...");
+    if (this.continuousVolumeInterval) {
+      console.log("⚠️ Continuous volume interval already active, stopping first");
+      this.stopContinuousVolume();
+    }
+
+    this.continuousVolumeInterval = setInterval(async () => {
+      try {
+        await this.adjustVolume(-this.volumeStepSize);
+        console.log(`🔉 Continuous volume down: -${this.volumeStepSize}`);
+      } catch (error) {
+        console.error("Error in continuous volume down:", error);
+        this.stopContinuousVolume();
+      }
+    }, this.volumeAdjustmentRate);
+
+    console.log("✅ Continuous volume down started");
+    return "Started continuous volume down";
+  }
+
+  async stopContinuousVolume() {
+    if (this.continuousVolumeInterval) {
+      clearInterval(this.continuousVolumeInterval);
+      this.continuousVolumeInterval = null;
+      console.log("⏹️ Stopped continuous volume adjustment");
+      return "Stopped continuous volume adjustment";
+    }
+    console.log("ℹ️ No continuous volume adjustment was active");
+    return "No continuous volume adjustment was active";
+  }
+
   async updateMapping(args) {
     const { gesture, action, actionParams } = args;
 
@@ -986,6 +1126,21 @@ class GestureRecognitionMCPServer {
         description: "Close the last opened browser tab",
         params: {},
       },
+      {
+        name: "continuous_volume_up",
+        description: "Start continuous volume increase while gesture is held",
+        params: {},
+      },
+      {
+        name: "continuous_volume_down",
+        description: "Start continuous volume decrease while gesture is held",
+        params: {},
+      },
+      {
+        name: "stop_continuous_volume",
+        description: "Stop continuous volume adjustment",
+        params: {},
+      },
     ];
   }
 
@@ -1093,11 +1248,30 @@ class GestureRecognitionMCPServer {
       res.json({ success: true });
     });
 
+    app.delete("/api/gestures/:gesture", (req, res) => {
+      const { gesture } = req.params;
+      this.gestureMappings.delete(gesture);
+      this.saveGestureMappings();
+      res.json({ success: true });
+    });
+
+    app.get("/api/actions", (req, res) => {
+      res.json(this.getAvailableActions());
+    });
+
+    app.get("/api/status", (req, res) => {
+      res.json({ 
+        status: "running", 
+        timestamp: new Date().toISOString(),
+        mappings: this.gestureMappings.size
+      });
+    });
+
     app.post("/api/detect-gesture", async (req, res) => {
-      const { gesture, timestamp } = req.body;
+      const { gesture, timestamp, gestureState = 'detected' } = req.body;
 
       try {
-        await this.performAction({ gesture, timestamp });
+        await this.performAction({ gesture, timestamp, gestureState });
         res.json({ success: true });
       } catch (error) {
         res.status(500).json({ error: error.message });
