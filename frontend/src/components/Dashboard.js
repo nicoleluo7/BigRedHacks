@@ -94,8 +94,8 @@ function Dashboard({
   };
 
   // Count only gestures that actually have actions mapped (not null/undefined)
-  const mappedGestures = Object.entries(gestureMappings).filter(([_, mapping]) => 
-    mapping && mapping.action
+  const mappedGestures = Object.entries(gestureMappings).filter(
+    ([_, mapping]) => mapping && mapping.action
   ).length;
   const totalGestures = 17;
 
@@ -141,7 +141,9 @@ function Dashboard({
               <Activity className="w-8 h-8 text-primary-600 dark:text-primary-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-dark-400">System Status</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-dark-400">
+                System Status
+              </p>
               <p className="text-lg font-semibold text-gray-900 dark:text-dark-100">
                 {isConnected ? "Active" : "Offline"}
               </p>
@@ -187,7 +189,9 @@ function Dashboard({
               <Clock className="w-8 h-8 text-mint-600 dark:text-mint-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-dark-400">Last Gesture</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-dark-400">
+                Last Gesture
+              </p>
               <p className="text-sm font-semibold text-gray-900 dark:text-dark-100">
                 {lastGesture ? getGestureIcon(lastGesture.gesture) : "None"}
               </p>
@@ -239,28 +243,35 @@ function Dashboard({
             <div className="w-16 h-16 bg-gray-100 dark:bg-dark-700 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="w-8 h-8 text-gray-400 dark:text-dark-500" />
             </div>
-            <p className="text-gray-500 dark:text-dark-400">No gesture mappings configured</p>
+            <p className="text-gray-500 dark:text-dark-400">
+              No gesture mappings configured
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(gestureMappings).map(([gesture, mapping], index) => (
-              <div key={gesture} className="bg-gray-50 dark:bg-dark-700 rounded-lg p-4 hover:shadow-md dark:hover:shadow-dark transition-shadow duration-200">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">{getGestureIcon(gesture)}</div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-dark-100 capitalize">
-                      {gesture.replace("_", " ")}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-dark-400">
-                      {getActionDescription(
-                        mapping.action,
-                        mapping.params || {}
-                      )}
-                    </p>
+            {Object.entries(gestureMappings).map(
+              ([gesture, mapping], index) => (
+                <div
+                  key={gesture}
+                  className="bg-gray-50 dark:bg-dark-700 rounded-lg p-4 hover:shadow-md dark:hover:shadow-dark transition-shadow duration-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="text-2xl">{getGestureIcon(gesture)}</div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 dark:text-dark-100 capitalize">
+                        {gesture.replace("_", " ")}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-dark-400">
+                        {getActionDescription(
+                          mapping.action,
+                          mapping.params || {}
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         )}
       </div>

@@ -42,6 +42,13 @@
       "message": "ihfiuahfasd"
     },
     "updatedAt": "2025-09-20T22:52:46.562Z"
+  },
+  "four_fingers": {
+    "action": "open_tab",
+    "params": {
+      "url": "https://tysonyoshikawa.com/"
+    },
+    "updatedAt": "2025-09-20T23:06:00.785Z"
   }
 }
 
