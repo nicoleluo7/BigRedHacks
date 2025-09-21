@@ -57,10 +57,7 @@ function Navigation() {
               <h1
                 className="text-2xl font-bold tracking-tight"
                 style={{
-                  color:
-                    currentTheme === "cornell"
-                      ? "#ffffff"
-                      : currentThemeData.text,
+                  color: "#ffffff",
                 }}
               >
                 HandsFree
